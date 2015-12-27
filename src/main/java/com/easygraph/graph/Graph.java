@@ -7,9 +7,7 @@ package com.easygraph.graph;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class Graph {
 
@@ -21,6 +19,11 @@ public class Graph {
     
     public void addVertex(Vertex v){
         vertices.put(v.name, v);
+    }
+    
+    public void addEdge(String v1, String v2){
+        vertices.get(v1).addNeighbor(vertices.get(v2));
+        vertices.get(v2).addNeighbor(vertices.get(v1));
     }
     
     public Collection<Vertex> getVertices(){

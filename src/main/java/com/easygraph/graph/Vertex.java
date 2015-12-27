@@ -7,14 +7,23 @@ package com.easygraph.graph;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 public class Vertex {
 
     public final String name;
     private final Set<Vertex> neighbors;
+    public double posX = 0;
+    public double posY = 0;
 
     public Vertex(String name){
+        System.out.println("New vertex!");
+        
+        Random rand = new Random();
+        posX = rand.nextInt(400);
+        posY = rand.nextInt(400);
+        
         this.name = name;
         this.neighbors = new HashSet<>();
     }
@@ -36,7 +45,7 @@ public class Vertex {
     
     //tests only on name
     public boolean equals(Object other){
-        if(! (other instanceof Vertex) || ! name.equals(((Vertex)other).name))
+        if(other == null || ! (other instanceof Vertex) || ! name.equals(((Vertex)other).name))
             return false;
         
         return true;
