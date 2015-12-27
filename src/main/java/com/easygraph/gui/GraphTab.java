@@ -9,24 +9,22 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+
+import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.easygraph.graph.Graph;
-import com.easygraph.graph.Vertex;
 
+@SuppressWarnings("serial")
 public class GraphTab extends JPanel {
     
-    private final Graph g;
+    private final Graph graph;
     
     private final JButton addVertex = new JButton();
     private final JButton addEdge = new JButton();
@@ -37,17 +35,46 @@ public class GraphTab extends JPanel {
     
     private final GraphDisplay display;
     
-    public GraphTab(Graph g){
-        this.g = g;
+    private final EasyGraph context;
+    
+    private File physicalFile;
+    private boolean changes;
+    
+    public GraphTab(Graph g, EasyGraph context){
+        this.graph = g;
         this.display = new GraphDisplay(g);
+        this.context = context;
+        context.notifyGraphHasChanges(this);
+        
+        changes = true;
         
         setupComponents();
         addListeners();
         placeComponents();
     }
     
-    public Graph getRefferencedGraph(){
-        return g;
+    public File getPhysicalFile(){
+        return this.physicalFile;
+    }
+    
+    public boolean hasChanges(){
+        return changes;
+    }
+    
+    public void notifyWasFlushed(){
+        changes = false;
+    }
+    
+    public void setPhysicalFile(File physical){
+        this.physicalFile = physical;
+    }
+    
+    public Dimension getPreferredSize(){
+        return display.getPreferredSize();
+    }
+    
+    public Graph getReferencedGraph(){
+        return graph;
     }
     
     private void setupComponents(){
@@ -58,17 +85,12 @@ public class GraphTab extends JPanel {
         edgeName1.setColumns(5);
         edgeName2.setColumns(5);
     }
-    
-    public Dimension getPreferredSize(){
-        return display.getPreferredSize();
-    }
-    
+        
     private void addListeners(){
         addVertex.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
                 addVertexAction();
-                
             }
         });
         
@@ -78,14 +100,7 @@ public class GraphTab extends JPanel {
                 addEdgeAction();
             }
         });
-        
-
-        
-        
-        
     }
-    
-    
     
     private void placeComponents(){
         //first the tool panel
@@ -110,12 +125,30 @@ public class GraphTab extends JPanel {
     }
 
     private void addVertexAction(){
-        g.addVertex(new Vertex(vertexName.getText()));
-        display.notifyChangesInGraph();
+        try{
+            graph.addVertex(vertexName.getText());
+            vertexName.setText("");
+            display.notifyChangesInGraph();
+            changes = true;
+            context.notifyGraphHasChanges(this);
+        }
+        catch(IllegalArgumentException e){
+            context.throwError(e.getMessage());
+        }
     }
     
     private void addEdgeAction(){
-        g.addEdge(edgeName1.getText(), edgeName2.getText());
-        display.notifyChangesInGraph();
+        try{
+            graph.addEdge(edgeName1.getText(), edgeName2.getText());  
+            edgeName1.setText("");
+            edgeName2.setText("");
+            display.notifyChangesInGraph();
+            changes = true;
+            context.notifyGraphHasChanges(this);
+        }
+        catch(IllegalArgumentException e){
+            context.throwError(e.getMessage());
+        }
     }
+
 }

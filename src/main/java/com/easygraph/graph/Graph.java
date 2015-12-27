@@ -17,13 +17,29 @@ public class Graph {
         this.vertices = new HashMap<>();
     }
     
-    public void addVertex(Vertex v){
-        vertices.put(v.name, v);
+    public void addVertex(String v){
+        if(v.equals(""))
+            throw new IllegalArgumentException("The empty string is not a valid vertex name.");
+        
+        if(vertices.containsKey(v))
+            throw new IllegalArgumentException("A vertex with the same name already exists.");
+        
+        vertices.put(v, new Vertex(v));
     }
     
-    public void addEdge(String v1, String v2){
-        vertices.get(v1).addNeighbor(vertices.get(v2));
-        vertices.get(v2).addNeighbor(vertices.get(v1));
+    public void addEdge(String n1, String n2){
+        Vertex v1 = getVertex(n1);
+        Vertex v2 = getVertex(n2);
+        
+        if(v1.equals(v2))
+            throw new IllegalArgumentException("Cannot have an edge from and to the same node.");
+        
+        if(v1.getNeighbors().contains(v2))
+            throw new IllegalArgumentException("Edge already exists.");
+        
+        //finally...
+        v1.addNeighbor(v2);
+        v2.addNeighbor(v1);
     }
     
     public Collection<Vertex> getVertices(){
@@ -31,6 +47,9 @@ public class Graph {
     }
     
     public Vertex getVertex(String name){
+        if(!vertices.containsKey(name))
+            throw new IllegalArgumentException("Unknown vertex name: \""+name+"\".");
+        
         return vertices.get(name);
     }
     

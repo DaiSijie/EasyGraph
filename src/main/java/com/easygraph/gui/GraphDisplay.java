@@ -5,6 +5,7 @@
 
 package com.easygraph.gui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -26,11 +27,11 @@ import com.easygraph.graph.Vertex;
 @SuppressWarnings("serial")
 public class GraphDisplay extends JComponent{
 
-    public final static double R = 25;
+    public final static double R = 20;
 
-    private static final Color BCK_COLOR = Color.LIGHT_GRAY;
+    private static final Color BCK_COLOR = new Color(255, 252, 235);
 
-    private static final Color REG_COLOR = Color.BLUE;
+    private static final Color REG_COLOR = new Color(185, 235, 250);
     private static final Color SEL_COLOR = Color.RED;
     private static final Color TXT_COLOR = Color.BLACK;
 
@@ -133,6 +134,18 @@ public class GraphDisplay extends JComponent{
 
     public void drawEdges(Graphics2D g){
         g.setColor(EDG_COLOR);
+        
+        
+        float dash1[] = {};
+        BasicStroke dashed =
+            new BasicStroke(2.0f,
+                            BasicStroke.CAP_BUTT,
+                            BasicStroke.JOIN_ROUND,
+                            10.0f);
+        
+        g.setStroke(dashed);
+        
+        
         for(Vertex v1 : ref.getVertices()){
             for(Vertex v2 : v1.getNeighbors()){
                 if(v1.name.compareTo(v2.name) > 0){
@@ -161,6 +174,8 @@ public class GraphDisplay extends JComponent{
         }
     }
 
+    
+    
 
     public Dimension getPreferredSize(){
         return new Dimension(800, 600);

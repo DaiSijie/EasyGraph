@@ -19,10 +19,13 @@ public class GraphFile {
 
     public static Graph fetchGraph(File f) throws ParseException, IOException{        
         String toParse = FileUtils.readFileToString(f, "UTF-8");
-        String splitted[] = toParse.split("|");
+        
+        System.out.println(toParse);
+        
+        String splitted[] = toParse.split(":");
         
         if(splitted.length != 3)
-            throw new ParseException("three parts should be present : tags|vertices|relations", 0);
+            throw new ParseException("three parts should be present : tags:vertices:relations", 0);
         
         Map<String, String> tags = getTags(splitted[0]);
         String vertices = splitted[1];
@@ -42,9 +45,8 @@ public class GraphFile {
         
         HashMap<String, Vertex> v = new HashMap<>();//datastrucure to avoid 
         for(String name : vertices.split(";")){
-            Vertex toPut = new Vertex(name);
-            v.put(name, toPut);
-            toReturn.addVertex(toPut);   
+            toReturn.addVertex(name);
+            v.put(name, toReturn.getVertex(name));
         }
         
         for(String rel : relations.split(";")){
@@ -84,7 +86,7 @@ public class GraphFile {
     }
     
     public static void flushGraph(File f, Graph g) throws IOException{
-        StringBuilder str = new StringBuilder("version=1|");
+        StringBuilder str = new StringBuilder("version=1:");
         StringBuilder edgeBuilder = new StringBuilder();
         
         //add the vertices
@@ -111,7 +113,7 @@ public class GraphFile {
             }
         }
         
-        str.append("|").append(edgeBuilder);
+        str.append(":").append(edgeBuilder);
         
         //the graph is baked!
         String graph = str.toString();
