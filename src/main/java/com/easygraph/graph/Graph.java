@@ -42,6 +42,17 @@ public class Graph {
         v2.addNeighbor(v1);
     }
     
+    public void removeVertex(Vertex v){
+        if(!vertices.containsKey(v.name))
+            throw new IllegalArgumentException("Unknown vertex");
+        
+        for(Vertex v2 : v.getNeighbors()){
+            v2.removeNeighbor(v);
+        }
+        
+        vertices.remove(v.name);
+    }
+    
     public Collection<Vertex> getVertices(){
         return vertices.values();
     }

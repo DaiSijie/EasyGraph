@@ -42,7 +42,7 @@ public class GraphTab extends JPanel {
     
     public GraphTab(Graph g, EasyGraph context){
         this.graph = g;
-        this.display = new GraphDisplay(g);
+        this.display = new GraphDisplay(g, this, context);
         this.context = context;
         context.notifyGraphHasChanges(this);
         

@@ -28,6 +28,10 @@ public class Vertex {
         this.neighbors = new HashSet<>();
     }
     
+    public void removeNeighbor(Vertex v){
+        neighbors.remove(v);
+    }
+    
     public void addNeighbor(Vertex v){
         if(this.equals(v))
             throw new IllegalArgumentException("a vertice cannot be it's own neighbor");

@@ -10,6 +10,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -17,9 +19,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
-import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 
 import com.easygraph.graph.Graph;
 import com.easygraph.graph.Vertex;
@@ -36,63 +36,126 @@ public class GraphDisplay extends JComponent{
     private static final Color TXT_COLOR = Color.BLACK;
 
     private static final Color EDG_COLOR = Color.BLACK;
+    
+    private static final Color GRD_COLOR = Color.LIGHT_GRAY;
+    
+    private static final double GRID_SPACING = 50;
 
     private final Graph ref;
+    private final GraphTab enclosing;
+    private final EasyGraph context;
     
     public Vertex selectedVertex;
     
-    public GraphDisplay(Graph g){
+    boolean spaceMode = false;
+    
+    boolean longSelect = false;
+    
+    public GraphDisplay(Graph g, final GraphTab enclosing, final EasyGraph context){
         this.ref = g;
+        this.enclosing = enclosing;
+        this.context = context;
+        
+        this.addKeyListener(new KeyListener(){
+
+            @Override
+            public void keyTyped(KeyEvent e) {}
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_SHIFT && !spaceMode){//avoids unusefull repaints
+                    spaceMode = true;     
+                    repaint();
+                }
+                
+                if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE && longSelect){
+                    ref.removeVertex(selectedVertex);
+                    context.notifyGraphHasChanges(enclosing);
+                    longSelect = false;
+                    selectedVertex = null;
+                    repaint();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                
+                if(e.getKeyCode() == KeyEvent.VK_SHIFT){
+                    spaceMode = false;
+                    repaint();
+                }
+            }
+            
+        });
         
         this.addMouseListener(new MouseListener(){
 
             @Override
-            public void mouseClicked(MouseEvent e) {
-
-            }
+            public void mouseClicked(MouseEvent e) {}
 
             @Override
             public void mousePressed(MouseEvent e) {
-                System.out.println("Hello");
+                requestFocus();
                 
+                Vertex found = null;
                 //find selected vertex
                 for(Vertex v : ref.getVertices()){
                     //compute dst
                     double sqdst = (v.posX - e.getX())*(v.posX - e.getX()) + (v.posY - e.getY())*(v.posY - e.getY());
                     
-                    System.out.println("SQd"+sqdst);
-                    
                     if(sqdst < GraphDisplay.R*GraphDisplay.R){
-                        System.out.println("Selected :_)");
-                        selectedVertex = v;
-                        return;
+                        found = v;
+                        break;
                     }
-                    
+                }
+                
+                boolean vertexFound = found != null;
+                
+                if(e.isPopupTrigger() && vertexFound){
+                    if(longSelect){
+                        if(selectedVertex.getNeighbors().contains(found)){
+                            selectedVertex.removeNeighbor(found);
+                            found.removeNeighbor(selectedVertex);
+                        }
+                        else{
+                            ref.addEdge(selectedVertex.name, found.name);
+                        }
+                        context.notifyGraphHasChanges(enclosing);
+                        
+                        longSelect = false;
+                        selectedVertex = null;
+                    }
+                    else{
+                        longSelect = true;
+                        selectedVertex = found;  
+                    }
+                }
+                else if(!e.isPopupTrigger() && vertexFound){
+                    longSelect = false;
+                    selectedVertex = found;
+                }
+                else{
+                    longSelect = false;
                     selectedVertex = null;
                 }
                 
                 repaint();
-                
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                selectedVertex = null;
+                if(!longSelect){
+                    longSelect = false;
+                    selectedVertex = null;
+                }
                 repaint();
-                
             }
 
             @Override
-            public void mouseEntered(MouseEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void mouseEntered(MouseEvent e) {}
 
             @Override
-            public void mouseExited(MouseEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void mouseExited(MouseEvent e) {}
             
         });
         
@@ -101,21 +164,31 @@ public class GraphDisplay extends JComponent{
             @Override
             public void mouseDragged(MouseEvent e) {
                 if(selectedVertex != null){
-                    selectedVertex.posX = e.getX();
-                    selectedVertex.posY = e.getY();
+                    if(spaceMode){
+                        double normalizedX = e.getX() / GRID_SPACING;
+                        double normalizedY = e.getY() / GRID_SPACING;
+                        
+                        
+                        int x = (int) Math.round(normalizedX);
+                        int y = (int) Math.round(normalizedY);
+                        
+                        selectedVertex.posX = x * GRID_SPACING;
+                        selectedVertex.posY = y * GRID_SPACING;
+                        
+                    }
+                    else{
+                        selectedVertex.posX = e.getX();
+                        selectedVertex.posY = e.getY(); 
+                    }
+                    repaint();
                 }
-                repaint();
             }
 
             @Override
-            public void mouseMoved(MouseEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void mouseMoved(MouseEvent e) {}
             
         });
-        
-        
+  
     }
 
     public void notifyChangesInGraph(){
@@ -128,13 +201,45 @@ public class GraphDisplay extends JComponent{
         g.setColor(BCK_COLOR);
         g.fill(getVisibleRect());
 
+        if(spaceMode)
+            drawGrid(g);
+        
         drawEdges(g);
         drawVertices(g, selectedVertex);
+    }
+    
+    public void drawGrid(Graphics2D g){
+        g.setColor(GRD_COLOR);
+
+        
+        float dash1[] = {4.0f};
+        BasicStroke dashed =
+            new BasicStroke(1.0f,
+                            BasicStroke.CAP_BUTT,
+                            BasicStroke.JOIN_MITER,
+                            10.0f, dash1, 0.0f);
+        
+        g.setStroke(dashed);
+        
+        
+        
+        int numX = (int) Math.ceil(getVisibleRect().width / GRID_SPACING);
+        int numY = (int) Math.ceil(getVisibleRect().height / GRID_SPACING);
+        
+        for(int i = 0; i < numX; i++){
+            g.draw(new Line2D.Double(i * GRID_SPACING, 0, i * GRID_SPACING, getVisibleRect().height));
+        }
+        
+        for(int i = 0; i < numY; i++){
+            g.draw(new Line2D.Double(0, i*GRID_SPACING, getVisibleRect().width, i*GRID_SPACING));
+        }
+        
+        
+        
     }
 
     public void drawEdges(Graphics2D g){
         g.setColor(EDG_COLOR);
-        
         
         float dash1[] = {};
         BasicStroke dashed =
@@ -144,7 +249,6 @@ public class GraphDisplay extends JComponent{
                             10.0f);
         
         g.setStroke(dashed);
-        
         
         for(Vertex v1 : ref.getVertices()){
             for(Vertex v2 : v1.getNeighbors()){
@@ -158,13 +262,7 @@ public class GraphDisplay extends JComponent{
     
 
     public void drawVertices(Graphics2D g, Vertex selected){
-        for(Vertex v : ref.getVertices()){
-            
-            if(v != null && selected != null)
-                System.out.println("Equality on: "+v.name+" and "+selected.name+" ?? "+v.equals(selected));
-            
-            
-            
+        for(Vertex v : ref.getVertices()){            
             g.setColor(v.equals(selected)? SEL_COLOR : REG_COLOR);
             g.fill(new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R));
 
@@ -173,9 +271,6 @@ public class GraphDisplay extends JComponent{
             g.drawString(v.name, (float) (v.posX - bounds.getWidth()/2), (float) (v.posY + bounds.getHeight()/4)); 
         }
     }
-
-    
-    
 
     public Dimension getPreferredSize(){
         return new Dimension(800, 600);

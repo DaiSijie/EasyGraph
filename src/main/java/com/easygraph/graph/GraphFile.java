@@ -14,19 +14,30 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class GraphFile {
 
     public static Graph fetchGraph(File f) throws ParseException, IOException{        
         String toParse = FileUtils.readFileToString(f, "UTF-8");
         
-        System.out.println(toParse);
-        
-        String splitted[] = toParse.split(":");
-        
-        if(splitted.length != 3)
+        int count = StringUtils.countMatches(toParse, ":");
+        if(count != 3)
             throw new ParseException("three parts should be present : tags:vertices:relations", 0);
         
+
+        String splitted[] = new String[3];
+        String[] temp = toParse.split(":");
+        
+        if(toParse.endsWith(":")){//no edges
+            splitted[0] = temp[0];
+            splitted[1] = temp[1];
+            splitted[2] = "";
+        }
+        else{
+            splitted = temp;
+        }
+
         Map<String, String> tags = getTags(splitted[0]);
         String vertices = splitted[1];
         String relations = splitted[2];
@@ -85,9 +96,12 @@ public class GraphFile {
         return toReturn;
     }
     
-    public static void flushGraph(File f, Graph g) throws IOException{
+    public static void flushGraph(File f, Graph g) throws IOException, ParseException{
         StringBuilder str = new StringBuilder("version=1:");
         StringBuilder edgeBuilder = new StringBuilder();
+        
+        if(g.getVertices().size() == 0)
+            throw new ParseException("The graph should contain at least one vertex to be saved", 0);
         
         //add the vertices
         boolean firstVertex = true;
