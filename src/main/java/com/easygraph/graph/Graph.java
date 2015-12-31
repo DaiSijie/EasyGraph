@@ -27,6 +27,13 @@ public class Graph {
         vertices.put(v, new Vertex(v));
     }
     
+    public void addVertex(Vertex v){
+        if(vertices.keySet().contains(v.name))
+            throw new IllegalArgumentException("Vertex already existing");
+        
+        vertices.put(v.name, v);
+    }
+    
     public void addEdge(String n1, String n2){
         Vertex v1 = getVertex(n1);
         Vertex v2 = getVertex(n2);
@@ -64,10 +71,16 @@ public class Graph {
         return vertices.get(name);
     }
     
+    public int getNumberOfVertices(){
+        return vertices.size();
+    }
     
-    
-    
-    
-    
-    
+    public int getNumberOfEdges(){
+        int sum = 0;
+        for(Vertex v : vertices.values())
+            sum += v.getNeighbors().size();
+        
+        return sum/2;
+    }
+       
 }

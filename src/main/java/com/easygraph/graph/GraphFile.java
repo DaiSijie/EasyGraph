@@ -22,7 +22,7 @@ public class GraphFile {
         String toParse = FileUtils.readFileToString(f, "UTF-8");
         
         int count = StringUtils.countMatches(toParse, ":");
-        if(count != 3)
+        if(count != 2)
             throw new ParseException("three parts should be present : tags:vertices:relations", 0);
         
 

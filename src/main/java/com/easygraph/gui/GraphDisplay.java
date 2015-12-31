@@ -204,6 +204,7 @@ public class GraphDisplay extends JComponent{
         if(spaceMode)
             drawGrid(g);
         
+        drawInfos(g);
         drawEdges(g);
         drawVertices(g, selectedVertex);
     }
@@ -237,6 +238,26 @@ public class GraphDisplay extends JComponent{
         
         
     }
+    
+    public void drawInfos(Graphics2D g){
+        g.setColor(TXT_COLOR);
+        
+        String vertices = "Vertices: "+ref.getNumberOfVertices();
+        String edges = "Edges: "+ref.getNumberOfEdges();
+        
+        Rectangle2D vBox = g.getFontMetrics().getStringBounds(vertices, g);
+        Rectangle2D eBox = g.getFontMetrics().getStringBounds(edges, g);
+        Rectangle2D vis = getVisibleRect();
+        
+        int max = (int) Math.max(vBox.getWidth(), eBox.getWidth()) + 7;
+        
+        g.drawString(edges, (int) (vis.getWidth() - max), (int) (vis.getHeight() - eBox.getHeight()/4 - 7));
+        g.drawString(vertices, (int) (vis.getWidth() - max), (int) (vis.getHeight() - vBox.getHeight()/4 - eBox.getHeight() - 5 - 7));  
+        
+        
+        
+        
+    }
 
     public void drawEdges(Graphics2D g){
         g.setColor(EDG_COLOR);
@@ -262,12 +283,28 @@ public class GraphDisplay extends JComponent{
     
 
     public void drawVertices(Graphics2D g, Vertex selected){
-        for(Vertex v : ref.getVertices()){            
-            g.setColor(v.equals(selected)? SEL_COLOR : REG_COLOR);
-            g.fill(new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R));
-
-            g.setColor(TXT_COLOR);
+        for(Vertex v : ref.getVertices()){     
             Rectangle2D bounds = g.getFontMetrics().getStringBounds(v.name, g);
+            Ellipse2D.Double vBound = null;
+            
+            if(bounds.getWidth() + 10 > 2*R){
+                vBound = new Ellipse2D.Double(v.posX - (bounds.getWidth() + 10)/2, v.posY - R, bounds.getWidth() + 10, 2*R);
+            }
+            else{
+                vBound = new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R);
+            }
+            
+            
+            g.setColor(v.equals(selected)? SEL_COLOR : REG_COLOR);
+            g.fill(vBound);
+            
+            g.setColor(EDG_COLOR);
+            g.draw(vBound);
+            
+            
+            
+            g.setColor(TXT_COLOR);
+
             g.drawString(v.name, (float) (v.posX - bounds.getWidth()/2), (float) (v.posY + bounds.getHeight()/4)); 
         }
     }

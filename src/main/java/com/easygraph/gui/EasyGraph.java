@@ -27,6 +27,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.easygraph.graph.ClassicGraphs;
 import com.easygraph.graph.Graph;
 import com.easygraph.graph.GraphFile;
 
@@ -46,6 +47,17 @@ public class EasyGraph {
     private final JMenuItem saveFile = new JMenuItem("Save");
     private final JMenuItem saveFileAs = new JMenuItem("Save as...");
     private final JMenuItem closeFile = new JMenuItem("Close graph");
+    
+    private final JMenuItem complete5 = new JMenuItem("K5");
+    private final JMenuItem complete10 = new JMenuItem("K10");
+    private final JMenuItem completeN = new JMenuItem("Order n...");
+    private final JMenuItem cyclic5 = new JMenuItem("C5");
+    private final JMenuItem cyclic10 = new JMenuItem("C10");
+    private final JMenuItem cyclicN = new JMenuItem("Order n...");
+    private final JMenuItem inverseGraph = new JMenuItem("Inverse graph");
+    
+    private final JMenuItem ssAsSeen = new JMenuItem("As displayed");
+    private final JMenuItem ssSmart = new JMenuItem("Smart centering");
 
     //file chooser instance for the whole app
     final JFileChooser fc = new JFileChooser();
@@ -70,22 +82,48 @@ public class EasyGraph {
     }
 
     private void setupComponents(){
+        saveFile.setEnabled(false);
+        closeFile.setEnabled(false);
+        saveFileAs.setEnabled(false);
+        
         JMenu m1 = new JMenu("File");
 
         m1.add(newFile);        
         m1.add(openFile);
         m1.addSeparator();
         m1.add(saveFile);
-
-        saveFile.setEnabled(false);
-        closeFile.setEnabled(false);
-        saveFileAs.setEnabled(false);
-
         m1.add(saveFileAs);
         m1.addSeparator();
         m1.add(closeFile);
 
         menuBar.add(m1);
+        
+        
+        JMenu m2 = new JMenu("Quick graphs");
+        JMenu m21 = new JMenu("Complete");
+        JMenu m22 = new JMenu("Cyclcic");
+        
+        m21.add(complete5);
+        m21.add(complete10);
+        m21.add(completeN);
+        m2.add(m21);
+        
+        m22.add(cyclic5);
+        m22.add(cyclic10);
+        m22.add(cyclicN);
+        m2.add(m22);
+        
+        m2.addSeparator();
+        m2.add(inverseGraph);
+        
+        menuBar.add(m2);
+        
+        JMenu m3 = new JMenu("Screenshot");
+        m3.add(ssAsSeen);
+        m3.add(ssSmart);
+        
+        menuBar.add(m3);
+
 
         tabbedPane.add("Welcome", welcomePanel);
     }
@@ -200,8 +238,65 @@ public class EasyGraph {
                 closeFileAction();
             }
         });
+        
+        
+        complete5.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openCompleteAction(5);
+                
+            }
+            
+        });
+
+        
+        complete10.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openCompleteAction(10);
+                
+            }
+            
+        });
+        
+        cyclic5.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openCyclicAction(5);
+                
+            }
+            
+        });
+        
+        cyclic10.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openCyclicAction(10);
+                
+            }
+            
+        });
     }
 
+    private void openCompleteAction(int order){
+        Graph g = ClassicGraphs.createComplete(order);
+        GraphTab luz = new GraphTab(g, this);
+        tabbedPane.add("Complete"+order, luz);
+        tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
+    }
+    
+    private void openCyclicAction(int order){
+        Graph g = ClassicGraphs.createCyclic(order);
+        GraphTab luz = new GraphTab(g, this);
+        tabbedPane.add("Cyclic"+order, luz);
+        tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
+    }
+    
+    
     private void placeComponents(){
         main.setLayout(new BorderLayout());
         main.add(tabbedPane, BorderLayout.CENTER);

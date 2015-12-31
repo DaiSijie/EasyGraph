@@ -27,12 +27,8 @@ public class GraphTab extends JPanel {
     private final Graph graph;
     
     private final JButton addVertex = new JButton();
-    private final JButton addEdge = new JButton();
-    
-    private final JTextField vertexName = new JTextField();
-    private final JTextField edgeName1 = new JTextField();
-    private final JTextField edgeName2 = new JTextField();
-    
+    private final JTextField vertexName = new JTextField("", 5);
+
     private final GraphDisplay display;
     
     private final EasyGraph context;
@@ -79,11 +75,7 @@ public class GraphTab extends JPanel {
     
     private void setupComponents(){
         addVertex.setText("Add");
-        addEdge.setText("Add");
-        
-        vertexName.setColumns(5);
-        edgeName1.setColumns(5);
-        edgeName2.setColumns(5);
+        vertexName.setMaximumSize(vertexName.getPreferredSize());
     }
         
     private void addListeners(){
@@ -91,13 +83,6 @@ public class GraphTab extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 addVertexAction();
-            }
-        });
-        
-        addEdge.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addEdgeAction();
             }
         });
     }
@@ -108,13 +93,10 @@ public class GraphTab extends JPanel {
         tools.setLayout(new BoxLayout(tools, BoxLayout.X_AXIS));
         
         tools.add(Box.createHorizontalStrut(10));
+        tools.add(Box.createHorizontalGlue());
+        tools.add(new JLabel("New vertex: "));
         tools.add(vertexName);
         tools.add(addVertex);
-        tools.add(Box.createHorizontalStrut(20));
-        tools.add(edgeName1);
-        tools.add(new JLabel(" and "));
-        tools.add(edgeName2);
-        tools.add(addEdge);
         tools.add(Box.createHorizontalGlue());
         tools.add(Box.createHorizontalStrut(10));
         
@@ -136,19 +118,4 @@ public class GraphTab extends JPanel {
             context.throwError(e.getMessage());
         }
     }
-    
-    private void addEdgeAction(){
-        try{
-            graph.addEdge(edgeName1.getText(), edgeName2.getText());  
-            edgeName1.setText("");
-            edgeName2.setText("");
-            display.notifyChangesInGraph();
-            changes = true;
-            context.notifyGraphHasChanges(this);
-        }
-        catch(IllegalArgumentException e){
-            context.throwError(e.getMessage());
-        }
-    }
-
 }
