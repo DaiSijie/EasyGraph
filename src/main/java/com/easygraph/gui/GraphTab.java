@@ -6,7 +6,6 @@
 package com.easygraph.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -39,9 +38,9 @@ public class GraphTab extends JPanel {
     private boolean changes;
     
     public GraphTab(Graph g, EasyGraph context){
-        this.graph = g;
-        this.display = new GraphDisplay(g, this, context);
         this.context = context;
+        this.graph = g;
+        this.display = new GraphDisplay(g, context, this);
         context.notifyGraphHasChanges(this);
         
         changes = true;
@@ -65,10 +64,6 @@ public class GraphTab extends JPanel {
     
     public void setPhysicalFile(File physical){
         this.physicalFile = physical;
-    }
-    
-    public Dimension getPreferredSize(){
-        return display.getPreferredSize();
     }
     
     public Graph getReferencedGraph(){
@@ -121,4 +116,5 @@ public class GraphTab extends JPanel {
             DialogsUtility.displayError(e.getMessage(), enclosing);
         }
     }
+    
 }

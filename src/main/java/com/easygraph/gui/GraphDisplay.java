@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -27,34 +28,31 @@ import com.easygraph.graph.Vertex;
 @SuppressWarnings("serial")
 public class GraphDisplay extends JComponent{
 
-    public final static double R = 20;
-
+    private final Graph ref;
+    
+    private static final double R = 20;
+    private static final double GRID_SPACING = 50;
+    
     private static final Color BCK_COLOR = new Color(255, 252, 235);
-
     private static final Color REG_COLOR = new Color(185, 235, 250);
     private static final Color SEL_COLOR = Color.RED;
     private static final Color TXT_COLOR = Color.BLACK;
-
     private static final Color EDG_COLOR = Color.BLACK;
-    
     private static final Color GRD_COLOR = Color.LIGHT_GRAY;
     
-    private static final double GRID_SPACING = 50;
-
-    private final Graph ref;
-    private final GraphTab enclosing;
-    private final EasyGraph context;
+    private static final Stroke GRD_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{4.f}, 0.0f);
+    private static final Stroke EDG_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10.0f);
     
+    boolean showGrid = false;
+    boolean longSelect = false; 
     public Vertex selectedVertex;
     
-    boolean spaceMode = false;
-    
-    boolean longSelect = false;
-    
-    public GraphDisplay(Graph g, final GraphTab enclosing, final EasyGraph context){
+    public GraphDisplay(Graph g, final EasyGraph context, GraphTab enclosing){
         this.ref = g;
-        this.enclosing = enclosing;
-        this.context = context;
+        addListeners(enclosing, context);
+    }
+    
+    private void addListeners(final GraphTab enclosing, final EasyGraph context){
         
         this.addKeyListener(new KeyListener(){
 
@@ -63,8 +61,8 @@ public class GraphDisplay extends JComponent{
 
             @Override
             public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_SHIFT && !spaceMode){//avoids unusefull repaints
-                    spaceMode = true;     
+                if(e.getKeyCode() == KeyEvent.VK_SHIFT && !showGrid){//avoids unusefull repaints
+                    showGrid = true;     
                     repaint();
                 }
                 
@@ -79,9 +77,8 @@ public class GraphDisplay extends JComponent{
 
             @Override
             public void keyReleased(KeyEvent e) {
-                
                 if(e.getKeyCode() == KeyEvent.VK_SHIFT){
-                    spaceMode = false;
+                    showGrid = false;
                     repaint();
                 }
             }
@@ -164,7 +161,7 @@ public class GraphDisplay extends JComponent{
             @Override
             public void mouseDragged(MouseEvent e) {
                 if(selectedVertex != null){
-                    if(spaceMode){
+                    if(showGrid){
                         double normalizedX = e.getX() / GRID_SPACING;
                         double normalizedY = e.getY() / GRID_SPACING;
                         
@@ -190,9 +187,13 @@ public class GraphDisplay extends JComponent{
         });
   
     }
-
+    
     public void notifyChangesInGraph(){
         repaint();
+    }
+    
+    public Dimension getPreferredSize(){
+        return new Dimension(800, 600);
     }
     
     public void paintComponent(Graphics g0){
@@ -201,7 +202,7 @@ public class GraphDisplay extends JComponent{
         g.setColor(BCK_COLOR);
         g.fill(getVisibleRect());
 
-        if(spaceMode)
+        if(showGrid)
             drawGrid(g);
         
         drawInfos(g);
@@ -209,37 +210,22 @@ public class GraphDisplay extends JComponent{
         drawVertices(g, selectedVertex);
     }
     
-    public void drawGrid(Graphics2D g){
+    private void drawGrid(Graphics2D g){
         g.setColor(GRD_COLOR);
-
-        
-        float dash1[] = {4.0f};
-        BasicStroke dashed =
-            new BasicStroke(1.0f,
-                            BasicStroke.CAP_BUTT,
-                            BasicStroke.JOIN_MITER,
-                            10.0f, dash1, 0.0f);
-        
-        g.setStroke(dashed);
-        
-        
+        g.setStroke(GRD_STROKE);
         
         int numX = (int) Math.ceil(getVisibleRect().width / GRID_SPACING);
         int numY = (int) Math.ceil(getVisibleRect().height / GRID_SPACING);
         
-        for(int i = 0; i < numX; i++){
+        for(int i = 0; i < numX; i++)
             g.draw(new Line2D.Double(i * GRID_SPACING, 0, i * GRID_SPACING, getVisibleRect().height));
-        }
         
-        for(int i = 0; i < numY; i++){
+        
+        for(int i = 0; i < numY; i++)
             g.draw(new Line2D.Double(0, i*GRID_SPACING, getVisibleRect().width, i*GRID_SPACING));
-        }
-        
-        
-        
     }
     
-    public void drawInfos(Graphics2D g){
+    private void drawInfos(Graphics2D g){
         g.setColor(TXT_COLOR);
         
         String vertices = "Vertices: "+ref.getNumberOfVertices();
@@ -259,17 +245,9 @@ public class GraphDisplay extends JComponent{
         
     }
 
-    public void drawEdges(Graphics2D g){
-        g.setColor(EDG_COLOR);
-        
-        float dash1[] = {};
-        BasicStroke dashed =
-            new BasicStroke(2.0f,
-                            BasicStroke.CAP_BUTT,
-                            BasicStroke.JOIN_ROUND,
-                            10.0f);
-        
-        g.setStroke(dashed);
+    private void drawEdges(Graphics2D g){
+        g.setColor(EDG_COLOR);        
+        g.setStroke(EDG_STROKE);
         
         for(Vertex v1 : ref.getVertices()){
             for(Vertex v2 : v1.getNeighbors()){
@@ -280,20 +258,18 @@ public class GraphDisplay extends JComponent{
         }
     }
     
-    
-
-    public void drawVertices(Graphics2D g, Vertex selected){
+    private void drawVertices(Graphics2D g, Vertex selected){
+        g.setStroke(EDG_STROKE);
+        
         for(Vertex v : ref.getVertices()){     
             Rectangle2D bounds = g.getFontMetrics().getStringBounds(v.name, g);
+            
             Ellipse2D.Double vBound = null;
-            
-            if(bounds.getWidth() + 10 > 2*R){
+            if(bounds.getWidth() + 10 > 2*R)
                 vBound = new Ellipse2D.Double(v.posX - (bounds.getWidth() + 10)/2, v.posY - R, bounds.getWidth() + 10, 2*R);
-            }
-            else{
-                vBound = new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R);
-            }
             
+            else
+                vBound = new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R);
             
             g.setColor(v.equals(selected)? SEL_COLOR : REG_COLOR);
             g.fill(vBound);
@@ -301,16 +277,9 @@ public class GraphDisplay extends JComponent{
             g.setColor(EDG_COLOR);
             g.draw(vBound);
             
-            
-            
             g.setColor(TXT_COLOR);
-
             g.drawString(v.name, (float) (v.posX - bounds.getWidth()/2), (float) (v.posY + bounds.getHeight()/4)); 
         }
-    }
-
-    public Dimension getPreferredSize(){
-        return new Dimension(800, 600);
     }
 
 }

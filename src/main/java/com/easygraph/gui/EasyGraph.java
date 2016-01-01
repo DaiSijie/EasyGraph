@@ -12,7 +12,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -54,10 +53,9 @@ public class EasyGraph {
     private final JMenuItem ssAsSeen = new JMenuItem("As displayed");
     private final JMenuItem ssSmart = new JMenuItem("Smart centering");
 
-    //file chooser instance for the whole app
-    final JFileChooser fc = new JFileChooser();
-
     public static void main(String[] args){
+        System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS"); //fires event when CMD+Q is thrown
+        
         new EasyGraph();
     }
 
@@ -80,6 +78,9 @@ public class EasyGraph {
         saveFile.setEnabled(false);
         closeFile.setEnabled(false);
         saveFileAs.setEnabled(false);
+        ssAsSeen.setEnabled(false);
+        ssSmart.setEnabled(false);
+        inverseGraph.setEnabled(false);
         
         JMenu m1 = new JMenu("File");
 
@@ -118,7 +119,6 @@ public class EasyGraph {
         m3.add(ssSmart);
         
         menuBar.add(m3);
-
 
         tabbedPane.add("Welcome", welcomePanel);
     }
@@ -163,6 +163,9 @@ public class EasyGraph {
                 closeFile.setEnabled(isGraphTab);
                 saveFileAs.setEnabled(isGraphTab);
                 saveFile.setEnabled(isGraphTab);
+                inverseGraph.setEnabled(isGraphTab);
+                ssAsSeen.setEnabled(isGraphTab);
+                ssSmart.setEnabled(isGraphTab);
             }
         });
 
@@ -259,8 +262,11 @@ public class EasyGraph {
     }
     
     public void notifyGraphHasChanges(GraphTab gt){
-        for(int i = 0; i < tabbedPane.getTabCount(); i++){
+        System.out.println("Hey ;)");
+        
+        for(int i = 0; i < tabbedPane.getTabCount(); i++){            
             if(tabbedPane.getComponentAt(i) == gt){
+                System.out.println("Gotcha!");
                 if(!tabbedPane.getTitleAt(i).endsWith("*"))
                     tabbedPane.setTitleAt(i, tabbedPane.getTitleAt(i)+"*");
                 return;
@@ -294,13 +300,15 @@ public class EasyGraph {
     }
 
     private void openFileAction(){
-        if (fc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+        File where = DialogsUtility.askForExistingFile(frame);
+        if(where != null){
             try {
-                File selected = fc.getSelectedFile();
-                Graph g = GraphFile.fetchGraph(selected);
+                Graph g = GraphFile.fetchGraph(where);
+                
                 GraphTab toPut = new GraphTab(g, this);
-                toPut.setPhysicalFile(selected);
-                tabbedPane.add(selected.getName(), toPut);
+                toPut.setPhysicalFile(where);
+                
+                tabbedPane.add(where.getName(), toPut);
                 tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
             } catch (Exception e) {
                 DialogsUtility.displayError(e.getMessage(), frame);
@@ -309,15 +317,14 @@ public class EasyGraph {
     }
 
     private void saveFileAsAction(){
-        if (fc.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+        File where = DialogsUtility.askForSavingFile(frame);
+        if(where != null){
             try {
-                File selected = fc.getSelectedFile();
-
                 GraphTab tab = (GraphTab) tabbedPane.getSelectedComponent();
-                tab.setPhysicalFile(selected);
-                GraphFile.flushGraph(selected, tab.getReferencedGraph());
+                tab.setPhysicalFile(where);
+                GraphFile.flushGraph(where, tab.getReferencedGraph());
 
-                tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), selected.getName());
+                tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), where.getName());
             } catch (Exception e) {
                 DialogsUtility.displayError(e.getMessage(), frame);
             }

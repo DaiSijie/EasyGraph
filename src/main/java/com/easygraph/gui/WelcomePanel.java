@@ -10,8 +10,8 @@ import java.awt.Dimension;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class WelcomePanel extends JComponent{
     
     public WelcomePanel(){

@@ -6,8 +6,10 @@
 package com.easygraph.gui;
 
 import java.awt.Frame;
+import java.io.File;
 
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
@@ -15,6 +17,8 @@ import javax.swing.SpinnerNumberModel;
 
 public class DialogsUtility {
 
+    private static final JFileChooser FC = new JFileChooser();
+    
     private DialogsUtility(){}
 
     public static void displayError(String message, Frame frame){
@@ -51,6 +55,30 @@ public class DialogsUtility {
             return -1;
         else
             return (Integer) spinner.getValue();
+    }
+
+    /**
+     * Returns null if the user aborted the file selection
+     * 
+     * @param context
+     * @return
+     */
+    public static File askForExistingFile(Frame context){
+        if(FC.showOpenDialog(context) != JFileChooser.APPROVE_OPTION)
+            return null;
+        else return FC.getSelectedFile();
+    }
+    
+    /**
+     * Returns null if the user aborted the file selection
+     * 
+     * @param context
+     * @return
+     */
+    public static File askForSavingFile(Frame context){
+        if (FC.showSaveDialog(context) != JFileChooser.APPROVE_OPTION)
+            return null;
+        else return FC.getSelectedFile();
     }
 
 }
