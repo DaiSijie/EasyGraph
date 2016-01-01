@@ -8,6 +8,7 @@ package com.easygraph.gui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -18,6 +19,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -82,6 +84,11 @@ public class EasyGraph {
         ssSmart.setEnabled(false);
         inverseGraph.setEnabled(false);
         
+        saveFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.META_MASK));
+        openFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.META_MASK));
+        ssSmart.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.META_MASK));
+        newFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.META_MASK));
+        
         JMenu m1 = new JMenu("File");
 
         m1.add(newFile);        
@@ -93,7 +100,6 @@ public class EasyGraph {
         m1.add(closeFile);
 
         menuBar.add(m1);
-        
         
         JMenu m2 = new JMenu("Quick graphs");
         JMenu m21 = new JMenu("Complete");
@@ -108,7 +114,6 @@ public class EasyGraph {
         m22.add(cyclic10);
         m22.add(cyclicN);
         m2.add(m22);
-        
         m2.addSeparator();
         m2.add(inverseGraph);
         
@@ -132,7 +137,9 @@ public class EasyGraph {
 
             @Override
             public void windowClosing(WindowEvent e) {
-                for(int i = 1; i < tabbedPane.getTabCount(); i++){
+                int yeeh = tabbedPane.getTabCount();
+                
+                for(int i = yeeh - 1; i >= 1; i--){
                     tabbedPane.setSelectedIndex(i);
                     closeFileAction();
                 } 
