@@ -11,17 +11,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
@@ -129,55 +124,36 @@ public class EasyGraph {
     }
 
     private void addListeners(){
+        
         frame.addWindowListener(new WindowListener(){
 
             @Override
-            public void windowOpened(WindowEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void windowOpened(WindowEvent e) {}
 
             @Override
             public void windowClosing(WindowEvent e) {
                 for(int i = 1; i < tabbedPane.getTabCount(); i++){
                     tabbedPane.setSelectedIndex(i);
                     closeFileAction();
-                }
-                
+                } 
             }
 
             @Override
-            public void windowClosed(WindowEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void windowClosed(WindowEvent e) {}
 
             @Override
-            public void windowIconified(WindowEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void windowIconified(WindowEvent e) {}
 
             @Override
-            public void windowDeiconified(WindowEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void windowDeiconified(WindowEvent e) {}
 
             @Override
-            public void windowActivated(WindowEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void windowActivated(WindowEvent e) {}
 
             @Override
-            public void windowDeactivated(WindowEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
+            public void windowDeactivated(WindowEvent e) {}
             
         });
-        
         
         tabbedPane.addChangeListener(new ChangeListener(){
             @Override
@@ -186,12 +162,7 @@ public class EasyGraph {
 
                 closeFile.setEnabled(isGraphTab);
                 saveFileAs.setEnabled(isGraphTab);
-                saveFile.setEnabled(false);
-                
-                if(isGraphTab){
-                    GraphTab tab = (GraphTab) tabbedPane.getSelectedComponent();
-                    saveFile.setEnabled(tab.getPhysicalFile() != null);
-                }
+                saveFile.setEnabled(isGraphTab);
             }
         });
 
@@ -200,36 +171,29 @@ public class EasyGraph {
             public void actionPerformed(ActionEvent e) {
                 newFileAction();
             }
-
         });
 
         openFile.addActionListener(new ActionListener(){
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 openFileAction();
             }
-
         });
 
         saveFileAs.addActionListener(new ActionListener(){
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 saveFileAsAction();
 
             }
-
         });
 
         saveFile.addActionListener(new ActionListener(){
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 saveFileAction();
 
             }
-
         });
 
         closeFile.addActionListener(new ActionListener(){
@@ -239,73 +203,93 @@ public class EasyGraph {
             }
         });
         
-        
         complete5.addActionListener(new ActionListener(){
-
             @Override
             public void actionPerformed(ActionEvent e) {
-                openCompleteAction(5);
-                
+                openCompleteAction(5); 
             }
-            
         });
 
-        
         complete10.addActionListener(new ActionListener(){
-
             @Override
             public void actionPerformed(ActionEvent e) {
-                openCompleteAction(10);
-                
+                openCompleteAction(10);   
             }
-            
         });
         
+        completeN.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int choosed = DialogsUtility.askForNaturalNumber(1, 50, "Enter the number of vertices", frame);
+                if(choosed >= 0)
+                    openCompleteAction(choosed);
+            }
+        });
+                
         cyclic5.addActionListener(new ActionListener(){
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 openCyclicAction(5);
                 
-            }
-            
+            } 
         });
         
         cyclic10.addActionListener(new ActionListener(){
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 openCyclicAction(10);
-                
-            }
-            
+            } 
         });
+        
+        cyclicN.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int choosed = DialogsUtility.askForNaturalNumber(3, 50, "Enter the number of vertices", frame);
+                
+                if(choosed >= 0)
+                    openCyclicAction(choosed);
+            }
+        });
+    
     }
 
+    private void placeComponents(){
+        main.setLayout(new BorderLayout());
+        main.add(tabbedPane, BorderLayout.CENTER);
+    }
+    
+    public void notifyGraphHasChanges(GraphTab gt){
+        for(int i = 0; i < tabbedPane.getTabCount(); i++){
+            if(tabbedPane.getComponentAt(i) == gt){
+                if(!tabbedPane.getTitleAt(i).endsWith("*"))
+                    tabbedPane.setTitleAt(i, tabbedPane.getTitleAt(i)+"*");
+                return;
+            }
+        }
+    }
+    
+    /*
+     * ACTIONS
+     */
+    
     private void openCompleteAction(int order){
         Graph g = ClassicGraphs.createComplete(order);
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("Complete"+order, luz);
+        tabbedPane.add("Complete"+order+"*", luz);
         tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
     }
     
     private void openCyclicAction(int order){
         Graph g = ClassicGraphs.createCyclic(order);
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("Cyclic"+order, luz);
+        tabbedPane.add("Cyclic"+order+"*", luz);
         tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
     }
     
-    
-    private void placeComponents(){
-        main.setLayout(new BorderLayout());
-        main.add(tabbedPane, BorderLayout.CENTER);
-    }
-
     private void newFileAction(){
         Graph g = new Graph();
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("new graph", luz);
+        tabbedPane.add("new graph*", luz);
         tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
     }
 
@@ -319,17 +303,7 @@ public class EasyGraph {
                 tabbedPane.add(selected.getName(), toPut);
                 tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
             } catch (Exception e) {
-                throwError(e.getMessage());
-            }
-        }
-    }
-
-    public void notifyGraphHasChanges(GraphTab gt){
-        for(int i = 0; i < tabbedPane.getTabCount(); i++){
-            if(tabbedPane.getComponentAt(i) == gt){
-                if(!tabbedPane.getTitleAt(i).endsWith("*"))
-                    tabbedPane.setTitleAt(i, tabbedPane.getTitleAt(i)+"*");
-                return;
+                DialogsUtility.displayError(e.getMessage(), frame);
             }
         }
     }
@@ -345,7 +319,7 @@ public class EasyGraph {
 
                 tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), selected.getName());
             } catch (Exception e) {
-                throwError(e.getMessage());
+                DialogsUtility.displayError(e.getMessage(), frame);
             }
         }
     }
@@ -353,7 +327,7 @@ public class EasyGraph {
     private void closeFileAction(){
         GraphTab sel = (GraphTab) tabbedPane.getSelectedComponent();
         if(sel.hasChanges()){
-            int answer = areYouSurePopup("Graph has unsaved changes, do you want to save and close?");
+            int answer = DialogsUtility.areYouSurePopup("Graph has unsaved changes, do you want to save and close?", frame);
             if(answer == 2){//yes
                 saveFileAction();
                 tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
@@ -381,25 +355,12 @@ public class EasyGraph {
                 int index = tabbedPane.getSelectedIndex();
                 String title = tabbedPane.getTitleAt(index);
                 title = title.substring(0, title.length() - 1);
-                
-                
+
                 tabbedPane.setTitleAt(index, title);
-            } catch (IOException e) {
-                throwError(e.getMessage());
-            } catch (ParseException e) {
-                throwError(e.getMessage());
+            } catch (Exception e) {
+                DialogsUtility.displayError(e.getMessage(), frame);
             }
         }
-    }
-
-    public void throwError(String message){
-        JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public int areYouSurePopup(String question){
-        //Custom button text
-        Object[] options = {"Cancel", "Close", "Yes"};
-        return JOptionPane.showOptionDialog(frame, question, "Warning", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
     }
 
 }

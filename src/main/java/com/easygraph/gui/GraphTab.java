@@ -15,9 +15,11 @@ import java.io.File;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import com.easygraph.graph.Graph;
 
@@ -115,7 +117,8 @@ public class GraphTab extends JPanel {
             context.notifyGraphHasChanges(this);
         }
         catch(IllegalArgumentException e){
-            context.throwError(e.getMessage());
+            JFrame enclosing = (JFrame) SwingUtilities.getWindowAncestor(this);
+            DialogsUtility.displayError(e.getMessage(), enclosing);
         }
     }
 }

@@ -77,7 +77,7 @@ public final class ClassicGraphs {
         int unit = order % 26;
         
         if(order > 25){
-            int dix = (order - unit) / 26;
+            int dix = (order - unit) / 26 - 1;
             char dixChar = (char) (dix + ((int) 'a'));
             bd.append(dixChar);
         }
