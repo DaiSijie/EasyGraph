@@ -12,6 +12,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -262,6 +263,13 @@ public class EasyGraph {
                     openCyclicAction(choosed);
             }
         });
+        
+        ssSmart.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                screenshotAction(tabbedPane.getSelectedIndex(), true);
+            } 
+        });
     
     }
 
@@ -271,8 +279,6 @@ public class EasyGraph {
     }
     
     public void notifyGraphHasChanges(GraphTab gt){
-        System.out.println("Hey ;)");
-        
         for(int i = 0; i < tabbedPane.getTabCount(); i++){            
             if(tabbedPane.getComponentAt(i) == gt){
                 System.out.println("Gotcha!");
@@ -286,6 +292,20 @@ public class EasyGraph {
     /*
      * ACTIONS
      */
+    
+    private void screenshotAction(int tab, boolean smart){
+        GraphTab gt = (GraphTab) tabbedPane.getComponentAt(tab);
+        
+        File where = DialogsUtility.askForSavingFile(frame);
+        if(where != null){
+            try {
+                gt.getDisplay().smartScreenShot(where);
+            } catch (IOException e) {
+                DialogsUtility.displayError("Problem while saving screenshot", frame);
+            }
+        }
+        
+    }
     
     private void openCompleteAction(int order){
         Graph g = ClassicGraphs.createComplete(order);

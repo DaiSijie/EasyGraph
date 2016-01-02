@@ -50,6 +50,10 @@ public class GraphTab extends JPanel {
         placeComponents();
     }
     
+    public GraphDisplay getDisplay(){
+        return display;
+    }
+    
     public File getPhysicalFile(){
         return this.physicalFile;
     }

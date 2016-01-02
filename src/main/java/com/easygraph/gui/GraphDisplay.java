@@ -20,10 +20,15 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 import com.easygraph.graph.Graph;
+import com.easygraph.graph.GraphUtils;
 import com.easygraph.graph.Vertex;
 
 @SuppressWarnings("serial")
@@ -47,7 +52,7 @@ public class GraphDisplay extends JComponent{
     private boolean showGrid = false;
     private boolean longSelect = false; 
     public Vertex selectedVertex;
-    public boolean antiAliasingOn = true;
+    public static boolean antiAliasingOn = true;
 
     public GraphDisplay(Graph g, final EasyGraph context, GraphTab enclosing){
         this.ref = g;
@@ -191,6 +196,39 @@ public class GraphDisplay extends JComponent{
 
     }
 
+    public void smartScreenShot(File f) throws IOException{
+        double borderSize = 50;
+        
+        double[] extremas = GraphUtils.findExtremas(ref);
+        
+        double topMost = extremas[0];
+        double bottomMost = extremas[1];
+        double leftMost = extremas[2];
+        double rightMost = extremas[3];
+
+        double width = 2*borderSize + (rightMost - leftMost);
+        double height = 2*borderSize + (bottomMost - topMost);
+        
+        BufferedImage image = new BufferedImage((int) width, (int) height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+
+        if(antiAliasingOn)
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        g.setColor(BCK_COLOR);
+        g.fillRect(0, 0, (int) width, (int) height);
+
+
+        g.translate(-leftMost + 50, -topMost + 50);
+        drawEdges(g);
+        drawVertices(g, selectedVertex);
+
+        g.dispose();
+        
+        ImageIO.write(image, "PNG", f);  
+    }
+    
+    
     public void notifyChangesInGraph(){
         repaint();
     }
