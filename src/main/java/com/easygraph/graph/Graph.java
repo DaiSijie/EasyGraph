@@ -82,5 +82,17 @@ public class Graph {
         
         return sum/2;
     }
+    
+    public void invert(){
+        for(Vertex v1 : getVertices()){
+            for(Vertex v2 : getVertices()){
+                if(!v1.equals(v2)){
+                    if(v1.getNeighbors().contains(v2))
+                        v1.removeNeighbor(v2);
+                    else v1.addNeighbor(v2);
+                }
+            }
+        }
+    }
        
 }

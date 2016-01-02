@@ -56,8 +56,8 @@ public class EasyGraph {
     private final JMenuItem cyclicN = new JMenuItem("Order n...");
     private final JMenuItem inverseGraph = new JMenuItem("Inverse graph");
     
-    private final JMenuItem ssAsSeen = new JMenuItem("As displayed");
-    private final JMenuItem ssSmart = new JMenuItem("Smart centering");
+    private final JMenuItem ssAsSeen = new JMenuItem("As displayed...");
+    private final JMenuItem ssSmart = new JMenuItem("Smart centering...");
 
     public static void main(String[] args){
         System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS"); //fires event when CMD+Q is thrown        
@@ -277,6 +277,13 @@ public class EasyGraph {
                 screenshotAction(tabbedPane.getSelectedIndex(), false); 
             }
         });
+        
+        inverseGraph.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                invertGraphAction(tabbedPane.getSelectedIndex());
+            }    
+        });
     
     }
 
@@ -299,6 +306,12 @@ public class EasyGraph {
     /*
      * ACTIONS
      */
+    
+    private void invertGraphAction(int tab){
+        GraphTab gt = (GraphTab) tabbedPane.getComponentAt(tab);
+        gt.getReferencedGraph().invert();
+        gt.repaint();
+    }
     
     private void screenshotAction(int tab, boolean smart){
         GraphTab gt = (GraphTab) tabbedPane.getComponentAt(tab);
