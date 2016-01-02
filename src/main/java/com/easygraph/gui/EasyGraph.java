@@ -14,6 +14,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -58,6 +59,8 @@ public class EasyGraph {
     
     private final JMenuItem ssAsSeen = new JMenuItem("As displayed...");
     private final JMenuItem ssSmart = new JMenuItem("Smart centering...");
+    
+    private final JCheckBoxMenuItem fastRendering = new JCheckBoxMenuItem("Fast rendering", false);
 
     public static void main(String[] args){
         System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS"); //fires event when CMD+Q is thrown        
@@ -127,7 +130,12 @@ public class EasyGraph {
         m3.add(ssSmart);
         
         menuBar.add(m3);
+        
+        JMenu m4 = new JMenu("Preferences");
+        m4.add(fastRendering);
 
+        menuBar.add(m4);
+        
         tabbedPane.add("Welcome", welcomePanel);
     }
 
@@ -283,6 +291,14 @@ public class EasyGraph {
             public void actionPerformed(ActionEvent e) {
                 invertGraphAction(tabbedPane.getSelectedIndex());
             }    
+        });
+        
+        fastRendering.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                GraphDisplay.antiAliasingOn = !fastRendering.getState();
+            }
         });
     
     }
