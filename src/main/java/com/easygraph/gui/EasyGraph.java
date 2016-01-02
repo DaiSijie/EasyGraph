@@ -270,6 +270,13 @@ public class EasyGraph {
                 screenshotAction(tabbedPane.getSelectedIndex(), true);
             } 
         });
+        
+        ssAsSeen.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                screenshotAction(tabbedPane.getSelectedIndex(), false); 
+            }
+        });
     
     }
 
@@ -299,7 +306,10 @@ public class EasyGraph {
         File where = DialogsUtility.askForSavingFile(frame);
         if(where != null){
             try {
-                gt.getDisplay().smartScreenShot(where);
+                if(smart)
+                    gt.getDisplay().smartScreenshot(where);
+                else
+                    gt.getDisplay().screenshot(where);
             } catch (IOException e) {
                 DialogsUtility.displayError("Problem while saving screenshot", frame);
             }

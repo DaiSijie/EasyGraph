@@ -196,7 +196,7 @@ public class GraphDisplay extends JComponent{
 
     }
 
-    public void smartScreenShot(File f) throws IOException{
+    public void smartScreenshot(File where) throws IOException{
         double borderSize = 50;
         
         double[] extremas = GraphUtils.findExtremas(ref);
@@ -211,9 +211,7 @@ public class GraphDisplay extends JComponent{
         
         BufferedImage image = new BufferedImage((int) width, (int) height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
-
-        if(antiAliasingOn)
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
         g.setColor(BCK_COLOR);
         g.fillRect(0, 0, (int) width, (int) height);
@@ -225,7 +223,15 @@ public class GraphDisplay extends JComponent{
 
         g.dispose();
         
-        ImageIO.write(image, "PNG", f);  
+        ImageIO.write(image, "PNG", where);  
+    }
+    
+    public void screenshot(File where) throws IOException{
+        BufferedImage image = new BufferedImage(getVisibleRect().width, getVisibleRect().height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();        
+        paintComponent(g);
+        g.dispose();
+        ImageIO.write(image, "PNG", where);  
     }
     
     
