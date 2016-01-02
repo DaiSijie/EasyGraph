@@ -72,7 +72,7 @@ public class EasyGraph {
         addListeners();
         placeComponents();
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setTitle("@EasyGraph");
         frame.setContentPane(main);
         frame.setJMenuBar(menuBar);
@@ -149,11 +149,20 @@ public class EasyGraph {
             @Override
             public void windowClosing(WindowEvent e) {
                 int yeeh = tabbedPane.getTabCount();
-                
+                boolean cancel = false;
+       
                 for(int i = yeeh - 1; i >= 1; i--){
                     tabbedPane.setSelectedIndex(i);
-                    closeFileAction();
+                    if(closeFileAction()){
+                        cancel = true;
+                        break;
+                    }
                 } 
+                
+                if(!cancel){
+                    frame.dispose();
+                    System.exit(0);
+                }
             }
 
             @Override
@@ -349,21 +358,21 @@ public class EasyGraph {
     private void openCompleteAction(int order){
         Graph g = ClassicGraphs.createComplete(order);
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("Complete"+order+"*", luz);
+        tabbedPane.add("Complete"+order, luz);
         tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
     }
     
     private void openCyclicAction(int order){
         Graph g = ClassicGraphs.createCyclic(order);
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("Cyclic"+order+"*", luz);
+        tabbedPane.add("Cyclic"+order, luz);
         tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
     }
     
     private void newFileAction(){
         Graph g = new Graph();
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("new graph*", luz);
+        tabbedPane.add("new graph", luz);
         tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
     }
 
@@ -384,7 +393,7 @@ public class EasyGraph {
         }
     }
 
-    private void saveFileAsAction(){
+    private boolean saveFileAsAction(){
         File where = DialogsUtility.askForSavingFile(frame);
         if(where != null){
             try {
@@ -393,34 +402,42 @@ public class EasyGraph {
                 GraphFile.flushGraph(where, tab.getReferencedGraph());
 
                 tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), where.getName());
+                return true;
             } catch (Exception e) {
                 DialogsUtility.displayError(e.getMessage(), frame);
             }
         }
+        
+        return false;
     }
 
-    private void closeFileAction(){
+    private boolean closeFileAction(){
         GraphTab sel = (GraphTab) tabbedPane.getSelectedComponent();
         if(sel.hasChanges()){
             int answer = DialogsUtility.areYouSurePopup("Graph has unsaved changes, do you want to save and close?", frame);
             if(answer == 2){//yes
-                saveFileAction();
-                tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+                if(saveFileAction()){
+                    tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+                    return true;
+                }
+                return false;
+
             }
             else if(answer == 1)//close
                 tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+            return answer == 0;
         }
         else{
-            tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());  
+            tabbedPane.removeTabAt(tabbedPane.getSelectedIndex()); 
+            return false;
         }
     }
 
-    private void saveFileAction(){
+    private boolean saveFileAction(){
         GraphTab tab = (GraphTab) tabbedPane.getSelectedComponent();
         
         if(tab.getPhysicalFile() == null){
-            saveFileAsAction();
-            return;
+            return saveFileAsAction();
         }
         if(tab.hasChanges()){
             try {
@@ -432,10 +449,13 @@ public class EasyGraph {
                 title = title.substring(0, title.length() - 1);
 
                 tabbedPane.setTitleAt(index, title);
+                return true;
             } catch (Exception e) {
                 DialogsUtility.displayError(e.getMessage(), frame);
+                return false;
             }
         }
+        return true;
     }
 
 }

@@ -41,9 +41,8 @@ public class GraphTab extends JPanel {
         this.context = context;
         this.graph = g;
         this.display = new GraphDisplay(g, context, this);
-        context.notifyGraphHasChanges(this);
-        
-        changes = true;
+
+        changes = false;
         
         setupComponents();
         addListeners();

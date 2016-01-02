@@ -18,8 +18,6 @@ public class Vertex {
     public double posY = 0;
 
     public Vertex(String name){
-        System.out.println("New vertex!");
-        
         Random rand = new Random();
         posX = rand.nextInt(400);
         posY = rand.nextInt(400);

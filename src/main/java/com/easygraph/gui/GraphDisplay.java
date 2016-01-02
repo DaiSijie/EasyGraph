@@ -255,9 +255,9 @@ public class GraphDisplay extends JComponent{
         if(showGrid)
             drawGrid(g);
 
-        drawInfos(g);
         drawEdges(g);
         drawVertices(g, selectedVertex);
+        drawInfos(g);
     }
 
     private void drawGrid(Graphics2D g){
