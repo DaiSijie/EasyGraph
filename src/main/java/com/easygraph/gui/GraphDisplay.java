@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -27,7 +28,7 @@ import com.easygraph.graph.Vertex;
 
 @SuppressWarnings("serial")
 public class GraphDisplay extends JComponent{
-
+    
     private final Graph ref;
 
     private static final double R = 20;
@@ -43,9 +44,10 @@ public class GraphDisplay extends JComponent{
     private static final Stroke GRD_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{4.f}, 0.0f);
     private static final Stroke EDG_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10.0f);
 
-    boolean showGrid = false;
-    boolean longSelect = false; 
+    private boolean showGrid = false;
+    private boolean longSelect = false; 
     public Vertex selectedVertex;
+    public boolean antiAliasingOn = true;
 
     public GraphDisplay(Graph g, final EasyGraph context, GraphTab enclosing){
         this.ref = g;
@@ -199,7 +201,10 @@ public class GraphDisplay extends JComponent{
 
     public void paintComponent(Graphics g0){
         Graphics2D g = (Graphics2D) g0;
-
+        
+        if(antiAliasingOn)
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
         g.setColor(BCK_COLOR);
         g.fill(getVisibleRect());
 

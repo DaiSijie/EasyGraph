@@ -20,6 +20,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -56,8 +59,7 @@ public class EasyGraph {
     private final JMenuItem ssSmart = new JMenuItem("Smart centering");
 
     public static void main(String[] args){
-        System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS"); //fires event when CMD+Q is thrown
-        
+        System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS"); //fires event when CMD+Q is thrown        
         new EasyGraph();
     }
 
