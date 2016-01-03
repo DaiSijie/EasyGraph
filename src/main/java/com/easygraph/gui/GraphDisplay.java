@@ -122,10 +122,13 @@ public class GraphDisplay extends JComponent{
                                 selectedVertex.removeNeighbor(found);
                                 found.removeNeighbor(selectedVertex);
                             }
-                            else
+                            else{
                                 ref.addEdge(selectedVertex.name, found.name);
+                            }
+                            enclosing.setHasChanges(true);
+                            context.notifyGraphHasChanges(enclosing);
                         }
-                        context.notifyGraphHasChanges(enclosing);
+
 
                         longSelect = false;
                         selectedVertex = null;

@@ -20,11 +20,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -38,7 +34,7 @@ public class EasyGraph {
     private final JFrame frame = new JFrame();
 
     //tabs
-    private final JTabbedPane tabbedPane = new JTabbedPane();
+    private final CustomTabbedPane tabbedPane = new CustomTabbedPane();
     private final WelcomePanel welcomePanel = new WelcomePanel();
 
     //menu bar
@@ -136,6 +132,7 @@ public class EasyGraph {
 
         menuBar.add(m4);
         
+        tabbedPane.setDefaultCloseAction(this);
         tabbedPane.add("Welcome", welcomePanel);
     }
 
@@ -153,7 +150,7 @@ public class EasyGraph {
        
                 for(int i = yeeh - 1; i >= 1; i--){
                     tabbedPane.setSelectedIndex(i);
-                    if(closeFileAction()){
+                    if(closeFileAction((GraphTab) tabbedPane.getSelectedComponent())){
                         cancel = true;
                         break;
                     }
@@ -229,7 +226,7 @@ public class EasyGraph {
         closeFile.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e){
-                closeFileAction();
+                closeFileAction((GraphTab) tabbedPane.getSelectedComponent());
             }
         });
         
@@ -320,7 +317,6 @@ public class EasyGraph {
     public void notifyGraphHasChanges(GraphTab gt){
         for(int i = 0; i < tabbedPane.getTabCount(); i++){            
             if(tabbedPane.getComponentAt(i) == gt){
-                System.out.println("Gotcha!");
                 if(!tabbedPane.getTitleAt(i).endsWith("*"))
                     tabbedPane.setTitleAt(i, tabbedPane.getTitleAt(i)+"*");
                 return;
@@ -358,22 +354,22 @@ public class EasyGraph {
     private void openCompleteAction(int order){
         Graph g = ClassicGraphs.createComplete(order);
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("Complete"+order, luz);
-        tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
+        tabbedPane.add("Complete"+order, luz, true);
+        tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
     }
     
     private void openCyclicAction(int order){
         Graph g = ClassicGraphs.createCyclic(order);
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("Cyclic"+order, luz);
-        tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
+        tabbedPane.add("Cyclic"+order, luz, true);
+        tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
     }
     
     private void newFileAction(){
         Graph g = new Graph();
         GraphTab luz = new GraphTab(g, this);
-        tabbedPane.add("new graph", luz);
-        tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
+        tabbedPane.add("new graph", luz, true);
+        tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
     }
 
     private void openFileAction(){
@@ -385,9 +381,11 @@ public class EasyGraph {
                 GraphTab toPut = new GraphTab(g, this);
                 toPut.setPhysicalFile(where);
                 
-                tabbedPane.add(where.getName(), toPut);
-                tabbedPane.setSelectedIndex(tabbedPane.getComponentCount() - 1);
+                tabbedPane.add(where.getName(), toPut, true);
+                
+                tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
             } catch (Exception e) {
+                e.printStackTrace();
                 DialogsUtility.displayError(e.getMessage(), frame);
             }
         }
@@ -400,6 +398,7 @@ public class EasyGraph {
                 GraphTab tab = (GraphTab) tabbedPane.getSelectedComponent();
                 tab.setPhysicalFile(where);
                 GraphFile.flushGraph(where, tab.getReferencedGraph());
+                tab.notifyWasFlushed();
 
                 tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), where.getName());
                 return true;
@@ -411,24 +410,23 @@ public class EasyGraph {
         return false;
     }
 
-    private boolean closeFileAction(){
-        GraphTab sel = (GraphTab) tabbedPane.getSelectedComponent();
+    boolean closeFileAction(GraphTab sel){
         if(sel.hasChanges()){
             int answer = DialogsUtility.areYouSurePopup("Graph has unsaved changes, do you want to save and close?", frame);
             if(answer == 2){//yes
                 if(saveFileAction()){
-                    tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+                    tabbedPane.remove(sel);
                     return true;
                 }
                 return false;
 
             }
             else if(answer == 1)//close
-                tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+                tabbedPane.remove(sel);
             return answer == 0;
         }
         else{
-            tabbedPane.removeTabAt(tabbedPane.getSelectedIndex()); 
+            tabbedPane.remove(sel);
             return false;
         }
     }

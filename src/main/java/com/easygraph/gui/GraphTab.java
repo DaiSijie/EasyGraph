@@ -87,6 +87,10 @@ public class GraphTab extends JPanel {
         });
     }
     
+    public void setHasChanges(boolean hasChanges){
+        this.changes = hasChanges;
+    }
+    
     private void placeComponents(){
         //first the tool panel
         JPanel tools = new JPanel();

@@ -9,23 +9,16 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
 
 @SuppressWarnings("serial")
 public class WelcomePanel extends JComponent{
@@ -68,7 +61,6 @@ public class WelcomePanel extends JComponent{
         l2 =  prepareLabel("data/welcome/g2.png", "An icosaedro");
         l3 =  prepareLabel("data/welcome/g3.png", "A simple neural network");
     }
-    
     
     private JLabel prepareLabel(String path, String description){
         ImageIcon icon = new ImageIcon(path);
