@@ -5,6 +5,7 @@
 
 package com.easygraph.graph;
 
+import java.awt.geom.Ellipse2D;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
@@ -16,6 +17,7 @@ public class Vertex {
     private final Set<Vertex> neighbors;
     public double posX = 0;
     public double posY = 0;
+    public Ellipse2D representation;
 
     public Vertex(String name){
         Random rand = new Random();

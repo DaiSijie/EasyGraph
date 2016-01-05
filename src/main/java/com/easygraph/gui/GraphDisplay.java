@@ -33,10 +33,10 @@ import com.easygraph.graph.Vertex;
 
 @SuppressWarnings("serial")
 public class GraphDisplay extends JComponent{
-    
+
     private final Graph ref;
 
-    private static final double R = 20;
+    public static final double R = 20;
     private static final double GRID_SPACING = 50;
 
     private static final Color BCK_COLOR = new Color(255, 252, 235);
@@ -200,10 +200,10 @@ public class GraphDisplay extends JComponent{
     }
 
     public void smartScreenshot(File where) throws IOException{
-        double borderSize = 50;
-        
+        double borderSize = 30;
+
         double[] extremas = GraphUtils.findExtremas(ref);
-        
+
         double topMost = extremas[0];
         double bottomMost = extremas[1];
         double leftMost = extremas[2];
@@ -211,24 +211,24 @@ public class GraphDisplay extends JComponent{
 
         double width = 2*borderSize + (rightMost - leftMost);
         double height = 2*borderSize + (bottomMost - topMost);
-        
+
         BufferedImage image = new BufferedImage((int) width, (int) height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
+
         g.setColor(BCK_COLOR);
         g.fillRect(0, 0, (int) width, (int) height);
 
 
-        g.translate(-leftMost + 50, -topMost + 50);
+        g.translate(-leftMost + borderSize, -topMost + borderSize);
         drawEdges(g);
         drawVertices(g, selectedVertex);
 
         g.dispose();
-        
+
         ImageIO.write(image, "PNG", where);  
     }
-    
+
     public void screenshot(File where) throws IOException{
         BufferedImage image = new BufferedImage(getVisibleRect().width, getVisibleRect().height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();        
@@ -236,8 +236,8 @@ public class GraphDisplay extends JComponent{
         g.dispose();
         ImageIO.write(image, "PNG", where);  
     }
-    
-    
+
+
     public void notifyChangesInGraph(){
         repaint();
     }
@@ -248,10 +248,10 @@ public class GraphDisplay extends JComponent{
 
     public void paintComponent(Graphics g0){
         Graphics2D g = (Graphics2D) g0;
-        
+
         if(antiAliasingOn)
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
+
         g.setColor(BCK_COLOR);
         g.fill(getVisibleRect());
 
@@ -314,21 +314,19 @@ public class GraphDisplay extends JComponent{
     private void drawVertices(Graphics2D g, Vertex selected){
         g.setStroke(EDG_STROKE);
 
-        for(Vertex v : ref.getVertices()){     
+        for(Vertex v : ref.getVertices()){    
             Rectangle2D bounds = g.getFontMetrics().getStringBounds(v.name, g);
-
-            Ellipse2D.Double vBound = null;
             if(bounds.getWidth() + 10 > 2*R)
-                vBound = new Ellipse2D.Double(v.posX - (bounds.getWidth() + 10)/2, v.posY - R, bounds.getWidth() + 10, 2*R);
-
+                v.representation = new Ellipse2D.Double(v.posX - (bounds.getWidth() + 10)/2, v.posY - R, bounds.getWidth() + 10, 2*R);
             else
-                vBound = new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R);
+                v.representation = new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R);
+
 
             g.setColor(v.equals(selected)? SEL_COLOR : REG_COLOR);
-            g.fill(vBound);
+            g.fill(v.representation);
 
             g.setColor(EDG_COLOR);
-            g.draw(vBound);
+            g.draw(v.representation);
 
             g.setColor(TXT_COLOR);
             g.drawString(v.name, (float) (v.posX - bounds.getWidth()/2), (float) (v.posY + bounds.getHeight()/4)); 

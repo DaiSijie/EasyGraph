@@ -24,14 +24,19 @@ public class GraphUtils {
         double rightMost = Double.MIN_VALUE;
         
         for(Vertex v : g.getVertices()){
-            if(v.posY < topMost)
-                topMost = v.posY;
-            if(v.posY > bottomMost)
-                bottomMost = v.posY;
-            if(v.posX < leftMost)
-                leftMost = v.posX;
-            if(v.posX > rightMost)
-                rightMost = v.posX;
+            double top = v.posY - v.representation.getHeight()/2;
+            double bot = v.posY + v.representation.getHeight()/2;
+            double left = v.posX - v.representation.getWidth()/2;
+            double right = v.posX + v.representation.getWidth()/2;
+            
+            if(top < topMost)
+                topMost = top;
+            if(bot > bottomMost)
+                bottomMost = bot;
+            if(left < leftMost)
+                leftMost = left;
+            if(right > rightMost)
+                rightMost = right;
         }
         
         toReturn[0] = topMost;
