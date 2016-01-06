@@ -10,19 +10,24 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
@@ -34,25 +39,61 @@ import com.easygraph.graph.Vertex;
 @SuppressWarnings("serial")
 public class GraphDisplay extends JComponent{
 
+
+    /*
+     * LEFT CLICK: adding edges
+     * RIGHT CLICK: selecting vertex to delete or move them
+     */
+
     private final Graph ref;
 
+    public static final Dimension FLAWLESS_DIMENSION = new Dimension(800, 627);
     public static final double R = 20;
     private static final double GRID_SPACING = 50;
 
     private static final Color BCK_COLOR = new Color(255, 252, 235);
     private static final Color REG_COLOR = new Color(185, 235, 250);
-    private static final Color SEL_COLOR = Color.RED;
+    private static final Color SEL_COLOR = new Color(219, 70, 70);
     private static final Color TXT_COLOR = Color.BLACK;
     private static final Color EDG_COLOR = Color.BLACK;
     private static final Color GRD_COLOR = Color.LIGHT_GRAY;
+
+    private static final Color EDGE_ADD_COLOR = new Color(168, 247, 146);
 
     private static final Stroke GRD_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{4.f}, 0.0f);
     private static final Stroke EDG_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10.0f);
 
     private boolean showGrid = false;
-    private boolean longSelect = false; 
-    public Vertex selectedVertex;
+
+    private Vertex edgeVertex = null;
+
+    private boolean movingSomeVertex = false;
+    private Vertex leader = null;
+    private Set<Vertex> selectedVertices = new HashSet<>();
+
+    private boolean showSelectionRectangle = false;
+    private Point2D startOfMultiSelect = null;
+    private Point2D endOfMultiSelect = null;
+
+
+    //private boolean multiSelect = false;
+    //private boolean showSelectionRectangle = false;
+
+    //private HashSet<Vertex> selectedVertices = new HashSet<>();
+
+    //public Vertex selectedVertex;
     public static boolean antiAliasingOn = true;
+
+    private void putToNormalState(){
+        edgeVertex = null;
+        movingSomeVertex = false;
+        leader = null;
+        selectedVertices.clear();
+        showSelectionRectangle = false;
+        startOfMultiSelect = null;
+        endOfMultiSelect = null;
+    }
+
 
     public GraphDisplay(Graph g, final EasyGraph context, GraphTab enclosing){
         this.ref = g;
@@ -68,23 +109,25 @@ public class GraphDisplay extends JComponent{
 
             @Override
             public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_SHIFT && !showGrid){//avoids unusefull repaints
+                if(e.getKeyCode() == KeyEvent.VK_ALT && !showGrid){//avoids unusefull repaints
                     showGrid = true;     
                     repaint();
                 }
+                if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE){
+                    for(Vertex v : selectedVertices)
+                        ref.removeVertex(v);
 
-                if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE && longSelect){
-                    ref.removeVertex(selectedVertex);
+                    //put everything back to normal
+                    selectedVertices.clear();
+
                     context.notifyGraphHasChanges(enclosing);
-                    longSelect = false;
-                    selectedVertex = null;
                     repaint();
                 }
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_SHIFT){
+                if(e.getKeyCode() == KeyEvent.VK_ALT){
                     showGrid = false;
                     repaint();
                 }
@@ -92,78 +135,89 @@ public class GraphDisplay extends JComponent{
 
         });
 
-        this.addMouseListener(new MouseListener(){
-
-            @Override
-            public void mouseClicked(MouseEvent e) {}
+        this.addMouseListener(new MouseAdapter(){
 
             @Override
             public void mousePressed(MouseEvent e) {
                 requestFocus();
 
-                Vertex found = null;
-                //find selected vertex
-                for(Vertex v : ref.getVertices()){
-                    //compute dst
-                    double sqdst = (v.posX - e.getX())*(v.posX - e.getX()) + (v.posY - e.getY())*(v.posY - e.getY());
-
-                    if(sqdst < GraphDisplay.R*GraphDisplay.R){
-                        found = v;
-                        break;
-                    }
-                }
-
+                Vertex found = findVertexUnderMouse(e.getPoint());
                 boolean vertexFound = found != null;
+                boolean leftClick = e.isPopupTrigger();
+                boolean rightClick = !leftClick; //pretty naïve implementation: to see again
 
-                if(e.isPopupTrigger() && vertexFound){
-                    if(longSelect){
-                        if(!found.equals(selectedVertex)){
-                            if(selectedVertex.getNeighbors().contains(found)){
-                                selectedVertex.removeNeighbor(found);
-                                found.removeNeighbor(selectedVertex);
-                            }
-                            else{
-                                ref.addEdge(selectedVertex.name, found.name);
-                            }
-                            enclosing.setHasChanges(true);
-                            context.notifyGraphHasChanges(enclosing);
+                if(leftClick){
+                    //EDGE INSERTION
+                    if(vertexFound){
+                        Vertex temp = edgeVertex;
+                        putToNormalState();
+                        boolean alreadyOneEdgeSelected = temp != null;
+                        if(alreadyOneEdgeSelected){
+                            //CREATE A NEW EDGE
+                            if(!temp.equals(found)){
+                                if(temp.getNeighbors().contains(found)){
+                                    temp.removeNeighbor(found);
+                                    found.removeNeighbor(temp);
+                                }
+                                else{
+                                    ref.addEdge(temp.name, found.name);
+                                }
+                                enclosing.setHasChanges(true);
+                                context.notifyGraphHasChanges(enclosing);
+                            } 
+                            edgeVertex = null;
                         }
-
-
-                        longSelect = false;
-                        selectedVertex = null;
+                        else{
+                            //JUST STORE THE FOUND ONE
+                            edgeVertex = found;
+                        }
                     }
+                    //If no vertex was found, just put to normal state
                     else{
-                        longSelect = true;
-                        selectedVertex = found;  
+                        putToNormalState();
                     }
                 }
-                else if(!e.isPopupTrigger() && vertexFound){
-                    longSelect = false;
-                    selectedVertex = found;
-                }
-                else{
-                    longSelect = false;
-                    selectedVertex = null;
+                else if(rightClick){
+                    //VERTEX SELECTION
+                    if(vertexFound){
+                        if(e.isShiftDown()){
+                            if(selectedVertices.contains(found))
+                                selectedVertices.remove(found);
+                            else
+                                selectedVertices.add(found);
+                        }
+                        else{
+                            movingSomeVertex = true;
+                            leader = found;
+
+                            if(!selectedVertices.contains(leader)){
+                                selectedVertices.clear();
+                                selectedVertices.add(leader);
+                            }
+                        }
+                    }
+                    else{                        
+                        putToNormalState();
+                        startOfMultiSelect = e.getPoint();
+                        endOfMultiSelect = e.getPoint();
+                        showSelectionRectangle = true;
+                    }
                 }
 
                 repaint();
+
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if(!longSelect){
-                    longSelect = false;
-                    selectedVertex = null;
+                showSelectionRectangle = false;
+
+                if(movingSomeVertex){
+                    putToNormalState();
                 }
+
                 repaint();
             }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {}
-
-            @Override
-            public void mouseExited(MouseEvent e) {}
 
         });
 
@@ -171,25 +225,39 @@ public class GraphDisplay extends JComponent{
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                if(selectedVertex != null){
+                if(movingSomeVertex){                    
+                    double dx = 0;
+                    double dy = 0;
+                    
                     if(showGrid){
                         double normalizedX = e.getX() / GRID_SPACING;
                         double normalizedY = e.getY() / GRID_SPACING;
 
-
                         int x = (int) Math.round(normalizedX);
                         int y = (int) Math.round(normalizedY);
 
-                        selectedVertex.posX = x * GRID_SPACING;
-                        selectedVertex.posY = y * GRID_SPACING;
-
+                        dx = leader.posX - x * GRID_SPACING;
+                        dy = leader.posY - y * GRID_SPACING;
                     }
                     else{
-                        selectedVertex.posX = e.getX();
-                        selectedVertex.posY = e.getY(); 
+                        dx = leader.posX - e.getX();
+                        dy = leader.posY - e.getY();
                     }
+                    
+                    for(Vertex v : selectedVertices){
+                        v.posX -= dx;
+                        v.posY -= dy;
+                    }
+
+                                        
                     repaint();
                 }
+
+                if(showSelectionRectangle){
+                    endOfMultiSelect = e.getPoint();
+                    recomputeMultiSelectedVertices();
+                    repaint();
+                }  
             }
 
             @Override
@@ -197,6 +265,37 @@ public class GraphDisplay extends JComponent{
 
         });
 
+    }
+
+    private Vertex findVertexUnderMouse(Point mouse){
+        for(Vertex v : ref.getVertices()){
+            if(v.representation.contains(mouse))
+                return v;
+        }
+        return null;
+    }
+
+    private void recomputeMultiSelectedVertices(){
+        double x = Math.min(startOfMultiSelect.getX(), endOfMultiSelect.getX());
+        double y = Math.min(startOfMultiSelect.getY(), endOfMultiSelect.getY());
+
+        double width = Math.abs(startOfMultiSelect.getX() - endOfMultiSelect.getX());
+        double height = Math.abs(startOfMultiSelect.getY() - endOfMultiSelect.getY());
+
+        selectedVertices.clear();
+
+
+        Rectangle2D.Double rect = new Rectangle2D.Double(x, y, width, height);
+
+
+
+
+        for(Vertex v : ref.getVertices()){
+
+            if(v.representation.intersects(rect)){
+                selectedVertices.add(v);
+            }
+        }
     }
 
     public void smartScreenshot(File where) throws IOException{
@@ -222,7 +321,7 @@ public class GraphDisplay extends JComponent{
 
         g.translate(-leftMost + borderSize, -topMost + borderSize);
         drawEdges(g);
-        drawVertices(g, selectedVertex);
+        drawVertices(g);
 
         g.dispose();
 
@@ -243,7 +342,7 @@ public class GraphDisplay extends JComponent{
     }
 
     public Dimension getPreferredSize(){
-        return new Dimension(800, 600);
+        return FLAWLESS_DIMENSION;
     }
 
     public void paintComponent(Graphics g0){
@@ -259,8 +358,26 @@ public class GraphDisplay extends JComponent{
             drawGrid(g);
 
         drawEdges(g);
-        drawVertices(g, selectedVertex);
+        drawVertices(g);
         drawInfos(g);
+
+        if(showSelectionRectangle)
+            paintMultiSelect(g);
+    }
+
+
+    private void paintMultiSelect(Graphics2D g){        
+        double x = Math.min(startOfMultiSelect.getX(), endOfMultiSelect.getX());
+        double y = Math.min(startOfMultiSelect.getY(), endOfMultiSelect.getY());
+
+        double width = Math.abs(startOfMultiSelect.getX() - endOfMultiSelect.getX());
+        double height = Math.abs(startOfMultiSelect.getY() - endOfMultiSelect.getY());
+
+        RoundRectangle2D.Double rec = new RoundRectangle2D.Double(x, y, width, height, 9, 9);
+        g.setColor(new Color(198, 12, 12, 110));
+        g.fill(rec);
+        g.setColor(new Color(198, 12, 12));
+        g.draw(rec);
     }
 
     private void drawGrid(Graphics2D g){
@@ -311,7 +428,7 @@ public class GraphDisplay extends JComponent{
         }
     }
 
-    private void drawVertices(Graphics2D g, Vertex selected){
+    private void drawVertices(Graphics2D g){        
         g.setStroke(EDG_STROKE);
 
         for(Vertex v : ref.getVertices()){    
@@ -321,8 +438,15 @@ public class GraphDisplay extends JComponent{
             else
                 v.representation = new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R);
 
+            Color fill = null;
+            if(v.equals(edgeVertex))
+                fill = EDGE_ADD_COLOR;
+            else if(selectedVertices.contains(v))
+                fill = SEL_COLOR;
+            else
+                fill = REG_COLOR;
 
-            g.setColor(v.equals(selected)? SEL_COLOR : REG_COLOR);
+            g.setColor(fill);
             g.fill(v.representation);
 
             g.setColor(EDG_COLOR);

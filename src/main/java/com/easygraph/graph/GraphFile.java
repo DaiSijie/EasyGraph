@@ -18,6 +18,15 @@ import org.apache.commons.lang3.StringUtils;
 
 public class GraphFile {
 
+    public static final String[] RESERVED_EXPRESSIONS = {":", ",", ";"};
+    
+    public static boolean isLegalName(String name){
+        for(String s : RESERVED_EXPRESSIONS)
+            if(name.contains(s))
+                return false;
+        return true;
+    }
+    
     public static Graph fetchGraph(File f) throws ParseException, IOException{        
         String toParse = FileUtils.readFileToString(f, "UTF-8");
 

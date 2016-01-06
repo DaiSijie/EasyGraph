@@ -21,8 +21,8 @@ public class Vertex {
 
     public Vertex(String name){
         Random rand = new Random();
-        posX = rand.nextInt(400);
-        posY = rand.nextInt(400);
+        posX = rand.nextInt(150)+50;
+        posY = rand.nextInt(150)+50;
         
         this.name = name;
         this.neighbors = new HashSet<>();

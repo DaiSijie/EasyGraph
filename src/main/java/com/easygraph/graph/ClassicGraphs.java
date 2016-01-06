@@ -8,6 +8,8 @@ package com.easygraph.graph;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.easygraph.gui.GraphDisplay;
+
 public final class ClassicGraphs {
 
     private ClassicGraphs(){}
@@ -36,7 +38,7 @@ public final class ClassicGraphs {
         }
         
         
-        putInRound(vs, 200, 200, 150);
+        putInRound(vs, GraphDisplay.FLAWLESS_DIMENSION.width/2, GraphDisplay.FLAWLESS_DIMENSION.height/2, 150);
         
         return toReturn;    
     }
@@ -63,7 +65,7 @@ public final class ClassicGraphs {
             vs.get(to).addNeighbor(vs.get(from));
         }
         
-        putInRound(vs, 200, 200, 150);
+        putInRound(vs, GraphDisplay.FLAWLESS_DIMENSION.width/2, GraphDisplay.FLAWLESS_DIMENSION.height/2, 150);
                 
         return toReturn;  
     }
