@@ -14,12 +14,14 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -55,6 +57,9 @@ public class EasyGraph {
     
     private final JMenuItem ssAsSeen = new JMenuItem("As displayed...");
     private final JMenuItem ssSmart = new JMenuItem("Smart centering...");
+    
+    private final JRadioButtonMenuItem blackAndWhiteColors = new JRadioButtonMenuItem("Black and white");
+    private final JRadioButtonMenuItem regularColors = new JRadioButtonMenuItem("Regular colors");
     
     private final JCheckBoxMenuItem fastRendering = new JCheckBoxMenuItem("Fast rendering", false);
 
@@ -127,10 +132,22 @@ public class EasyGraph {
         
         menuBar.add(m3);
         
+        ButtonGroup group = new ButtonGroup();
+        group.add(blackAndWhiteColors);
+        group.add(regularColors);
+        
+        regularColors.setSelected(true);
+        
         JMenu m4 = new JMenu("Preferences");
+        JMenu m41 = new JMenu("Color theme");
+        m41.add(blackAndWhiteColors);
+        m41.add(regularColors);
+        m4.add(m41);
         m4.add(fastRendering);
 
+        
         menuBar.add(m4);
+        
         
         tabbedPane.setDefaultCloseAction(this);
         tabbedPane.add("Welcome", welcomePanel);
@@ -304,9 +321,26 @@ public class EasyGraph {
             @Override
             public void actionPerformed(ActionEvent e) {
                 GraphDisplay.antiAliasingOn = !fastRendering.getState();
+                tabbedPane.repaint();
             }
         });
-    
+        
+        
+        blackAndWhiteColors.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ColorTheme.setTheme(ColorTheme.Theme.BW);
+                tabbedPane.repaint();
+            }
+        });
+        
+        regularColors.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ColorTheme.setTheme(ColorTheme.Theme.REGULAR);
+                tabbedPane.repaint();
+            }
+        });    
     }
 
     private void placeComponents(){

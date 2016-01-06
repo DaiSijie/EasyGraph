@@ -5,16 +5,16 @@
 
 package com.easygraph.gui;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.Stroke;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -36,76 +36,54 @@ import com.easygraph.graph.Graph;
 import com.easygraph.graph.GraphUtils;
 import com.easygraph.graph.Vertex;
 
+import static com.easygraph.gui.ColorTheme.*;
+
 @SuppressWarnings("serial")
 public class GraphDisplay extends JComponent{
-
 
     /*
      * LEFT CLICK: adding edges
      * RIGHT CLICK: selecting vertex to delete or move them
      */
 
-    private final Graph ref;
+    private final Graph graph;
 
     public static final Dimension FLAWLESS_DIMENSION = new Dimension(800, 627);
     public static final double R = 20;
     private static final double GRID_SPACING = 50;
 
-    private static final Color BCK_COLOR = new Color(255, 252, 235);
-    private static final Color REG_COLOR = new Color(185, 235, 250);
-    private static final Color SEL_COLOR = new Color(219, 70, 70);
-    private static final Color TXT_COLOR = Color.BLACK;
-    private static final Color EDG_COLOR = Color.BLACK;
-    private static final Color GRD_COLOR = Color.LIGHT_GRAY;
-
-    private static final Color EDGE_ADD_COLOR = new Color(168, 247, 146);
-
-    private static final Stroke GRD_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{4.f}, 0.0f);
-    private static final Stroke EDG_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10.0f);
-
+    //display pref
     private boolean showGrid = false;
+    public static boolean antiAliasingOn = true;
+    
+    //logic behind selection
+    private Vertex edgeVertex;
 
-    private Vertex edgeVertex = null;
-
-    private boolean movingSomeVertex = false;
-    private Vertex leader = null;
+    private boolean movingSomeVertex;
+    private Vertex leader;
     private Set<Vertex> selectedVertices = new HashSet<>();
 
-    private boolean showSelectionRectangle = false;
-    private Point2D startOfMultiSelect = null;
-    private Point2D endOfMultiSelect = null;
-
-
-    //private boolean multiSelect = false;
-    //private boolean showSelectionRectangle = false;
-
-    //private HashSet<Vertex> selectedVertices = new HashSet<>();
-
-    //public Vertex selectedVertex;
-    public static boolean antiAliasingOn = true;
-
-    private void putToNormalState(){
-        edgeVertex = null;
-        movingSomeVertex = false;
-        leader = null;
-        selectedVertices.clear();
-        showSelectionRectangle = false;
-        startOfMultiSelect = null;
-        endOfMultiSelect = null;
-    }
-
+    private boolean showSelectionRectangle;
+    private Point2D startOfMultiSelect;
+    private Point2D endOfMultiSelect;
 
     public GraphDisplay(Graph g, final EasyGraph context, GraphTab enclosing){
-        this.ref = g;
+        this.graph = g;
+        putToNormalState();
         addListeners(enclosing, context);
     }
 
     private void addListeners(final GraphTab enclosing, final EasyGraph context){
 
-        this.addKeyListener(new KeyListener(){
-
+        this.addFocusListener(new FocusAdapter(){
             @Override
-            public void keyTyped(KeyEvent e) {}
+            public void focusLost(FocusEvent e) {
+                putToNormalState();
+                repaint();              
+            }
+        });
+        
+        this.addKeyListener(new KeyAdapter(){
 
             @Override
             public void keyPressed(KeyEvent e) {
@@ -115,7 +93,7 @@ public class GraphDisplay extends JComponent{
                 }
                 if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE){
                     for(Vertex v : selectedVertices)
-                        ref.removeVertex(v);
+                        graph.removeVertex(v);
 
                     //put everything back to normal
                     selectedVertices.clear();
@@ -160,7 +138,7 @@ public class GraphDisplay extends JComponent{
                                     found.removeNeighbor(temp);
                                 }
                                 else{
-                                    ref.addEdge(temp.name, found.name);
+                                    graph.addEdge(temp.name, found.name);
                                 }
                                 enclosing.setHasChanges(true);
                                 context.notifyGraphHasChanges(enclosing);
@@ -178,6 +156,8 @@ public class GraphDisplay extends JComponent{
                     }
                 }
                 else if(rightClick){
+                    edgeVertex = null;
+                    
                     //VERTEX SELECTION
                     if(vertexFound){
                         if(e.isShiftDown()){
@@ -267,14 +247,24 @@ public class GraphDisplay extends JComponent{
 
     }
 
+    private void putToNormalState(){
+        edgeVertex = null;
+        movingSomeVertex = false;
+        leader = null;
+        selectedVertices.clear();
+        showSelectionRectangle = false;
+        startOfMultiSelect = null;
+        endOfMultiSelect = null;
+    }
+    
     private Vertex findVertexUnderMouse(Point mouse){
-        for(Vertex v : ref.getVertices()){
+        for(Vertex v : graph.getVertices()){
             if(v.representation.contains(mouse))
                 return v;
         }
         return null;
     }
-
+     
     private void recomputeMultiSelectedVertices(){
         double x = Math.min(startOfMultiSelect.getX(), endOfMultiSelect.getX());
         double y = Math.min(startOfMultiSelect.getY(), endOfMultiSelect.getY());
@@ -290,7 +280,7 @@ public class GraphDisplay extends JComponent{
 
 
 
-        for(Vertex v : ref.getVertices()){
+        for(Vertex v : graph.getVertices()){
 
             if(v.representation.intersects(rect)){
                 selectedVertices.add(v);
@@ -301,7 +291,7 @@ public class GraphDisplay extends JComponent{
     public void smartScreenshot(File where) throws IOException{
         double borderSize = 30;
 
-        double[] extremas = GraphUtils.findExtremas(ref);
+        double[] extremas = GraphUtils.findExtremas(graph);
 
         double topMost = extremas[0];
         double bottomMost = extremas[1];
@@ -321,7 +311,7 @@ public class GraphDisplay extends JComponent{
 
         g.translate(-leftMost + borderSize, -topMost + borderSize);
         drawEdges(g);
-        drawVertices(g);
+        drawVertices(g, false);
 
         g.dispose();
 
@@ -335,7 +325,6 @@ public class GraphDisplay extends JComponent{
         g.dispose();
         ImageIO.write(image, "PNG", where);  
     }
-
 
     public void notifyChangesInGraph(){
         repaint();
@@ -358,13 +347,12 @@ public class GraphDisplay extends JComponent{
             drawGrid(g);
 
         drawEdges(g);
-        drawVertices(g);
+        drawVertices(g, true);
         drawInfos(g);
 
         if(showSelectionRectangle)
             paintMultiSelect(g);
     }
-
 
     private void paintMultiSelect(Graphics2D g){        
         double x = Math.min(startOfMultiSelect.getX(), endOfMultiSelect.getX());
@@ -374,9 +362,11 @@ public class GraphDisplay extends JComponent{
         double height = Math.abs(startOfMultiSelect.getY() - endOfMultiSelect.getY());
 
         RoundRectangle2D.Double rec = new RoundRectangle2D.Double(x, y, width, height, 9, 9);
-        g.setColor(new Color(198, 12, 12, 110));
+
+        g.setColor(new Color(SQUARE_SELECT_COLOR.getRed(), SQUARE_SELECT_COLOR.getGreen(), SQUARE_SELECT_COLOR.getBlue(), 110));
+        
         g.fill(rec);
-        g.setColor(new Color(198, 12, 12));
+        g.setColor(SQUARE_SELECT_COLOR);
         g.draw(rec);
     }
 
@@ -398,8 +388,8 @@ public class GraphDisplay extends JComponent{
     private void drawInfos(Graphics2D g){
         g.setColor(TXT_COLOR);
 
-        String vertices = "Vertices: "+ref.getNumberOfVertices();
-        String edges = "Edges: "+ref.getNumberOfEdges();
+        String vertices = "Vertices: "+graph.getNumberOfVertices();
+        String edges = "Edges: "+graph.getNumberOfEdges();
 
         Rectangle2D vBox = g.getFontMetrics().getStringBounds(vertices, g);
         Rectangle2D eBox = g.getFontMetrics().getStringBounds(edges, g);
@@ -419,7 +409,7 @@ public class GraphDisplay extends JComponent{
         g.setColor(EDG_COLOR);        
         g.setStroke(EDG_STROKE);
 
-        for(Vertex v1 : ref.getVertices()){
+        for(Vertex v1 : graph.getVertices()){
             for(Vertex v2 : v1.getNeighbors()){
                 if(v1.name.compareTo(v2.name) > 0){
                     g.draw(new Line2D.Double(v1.posX, v1.posY, v2.posX, v2.posY));
@@ -428,25 +418,28 @@ public class GraphDisplay extends JComponent{
         }
     }
 
-    private void drawVertices(Graphics2D g){        
+    private void drawVertices(Graphics2D g, boolean followColorCode){        
         g.setStroke(EDG_STROKE);
 
-        for(Vertex v : ref.getVertices()){    
+        for(Vertex v : graph.getVertices()){    
             Rectangle2D bounds = g.getFontMetrics().getStringBounds(v.name, g);
             if(bounds.getWidth() + 10 > 2*R)
                 v.representation = new Ellipse2D.Double(v.posX - (bounds.getWidth() + 10)/2, v.posY - R, bounds.getWidth() + 10, 2*R);
             else
                 v.representation = new Ellipse2D.Double(v.posX - R, v.posY - R, 2*R, 2*R);
 
-            Color fill = null;
-            if(v.equals(edgeVertex))
-                fill = EDGE_ADD_COLOR;
-            else if(selectedVertices.contains(v))
-                fill = SEL_COLOR;
-            else
-                fill = REG_COLOR;
+            if(followColorCode){
+                if(v.equals(edgeVertex))
+                    g.setColor(EDGE_ADD_COLOR);
+                else if(selectedVertices.contains(v))
+                    g.setColor(SEL_COLOR);
+                else
+                    g.setColor(REG_COLOR);
+            }
+            else{
+                g.setColor(REG_COLOR);
+            }
 
-            g.setColor(fill);
             g.fill(v.representation);
 
             g.setColor(EDG_COLOR);
