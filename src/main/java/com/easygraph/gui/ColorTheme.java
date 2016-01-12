@@ -23,6 +23,11 @@ public class ColorTheme {
     public static Color SQUARE_SELECT_COLOR = new Color(198, 12, 12);
 
     public static Color EDGE_ADD_COLOR = new Color(168, 247, 146);
+    
+    public static Color STATUS_ALG_MESSG_COLOR = new Color(71,18,97);
+    public static Color STATUS_INFO_COLOR = new Color(181, 102, 18);
+    public static Color STATUS_ERROR_COLOR = Color.RED;
+    public static Color STATUS_RESULT_COLOR = new Color(42, 130, 49);
 
     public static Stroke GRD_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{4.f}, 0.0f);
     public static Stroke EDG_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10.0f);
@@ -49,7 +54,6 @@ public class ColorTheme {
         EDGE_ADD_COLOR = new Color(168, 247, 146);
         SQUARE_SELECT_COLOR = new Color(198, 12, 12);
     }
-    
     
     public static enum Theme{
         BW, REGULAR

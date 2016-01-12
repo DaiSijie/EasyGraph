@@ -9,8 +9,8 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -23,6 +23,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -60,12 +61,16 @@ public class EasyGraph {
     
     private final JRadioButtonMenuItem blackAndWhiteColors = new JRadioButtonMenuItem("Black and white");
     private final JRadioButtonMenuItem regularColors = new JRadioButtonMenuItem("Regular colors");
-    
     private final JCheckBoxMenuItem fastRendering = new JCheckBoxMenuItem("Fast rendering", false);
-
+    
     public static void main(String[] args){
-        System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS"); //fires event when CMD+Q is thrown        
-        new EasyGraph();
+        System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS"); //fires event when CMD+Q is thrown     
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new EasyGraph();
+            }
+          });
     }
 
     public EasyGraph(){        
@@ -80,6 +85,7 @@ public class EasyGraph {
         frame.setSize(main.getPreferredSize());
         frame.setMinimumSize(main.getPreferredSize());
         frame.setLocationRelativeTo(null);
+        
         frame.setVisible(true);
     }
 
@@ -155,11 +161,7 @@ public class EasyGraph {
 
     private void addListeners(){
         
-        frame.addWindowListener(new WindowListener(){
-
-            @Override
-            public void windowOpened(WindowEvent e) {}
-
+        frame.addWindowListener(new WindowAdapter(){
             @Override
             public void windowClosing(WindowEvent e) {
                 int yeeh = tabbedPane.getTabCount();
@@ -175,25 +177,9 @@ public class EasyGraph {
                 
                 if(!cancel){
                     frame.dispose();
-                    System.exit(0);
+                    System.exit(0); //this is what swing normaly does under the hood.
                 }
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {}
-
-            @Override
-            public void windowIconified(WindowEvent e) {}
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {}
-
-            @Override
-            public void windowActivated(WindowEvent e) {}
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {}
-            
+            }            
         });
         
         tabbedPane.addChangeListener(new ChangeListener(){
@@ -340,9 +326,12 @@ public class EasyGraph {
                 ColorTheme.setTheme(ColorTheme.Theme.REGULAR);
                 tabbedPane.repaint();
             }
-        });    
+        });   
+        
     }
 
+
+    
     private void placeComponents(){
         main.setLayout(new BorderLayout());
         main.add(tabbedPane, BorderLayout.CENTER);
@@ -361,6 +350,7 @@ public class EasyGraph {
     /*
      * ACTIONS
      */
+
     
     private void invertGraphAction(int tab){
         GraphTab gt = (GraphTab) tabbedPane.getComponentAt(tab);
