@@ -10,6 +10,7 @@ import java.util.LinkedList;
 
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
 
 import com.easygraph.graph.Graph;
 import com.easygraph.graph.Vertex;
@@ -26,10 +27,17 @@ public class ComponentCount extends GraphAlgorithm {
     @Override
     protected String doInBackground() throws Exception {
         postHasStarted();
-        
+        postProgress(0);
         postMessage("Preparing datastructures");
         
-        HashSet<Vertex> vertices = new HashSet<Vertex>(graph.getVertices());
+        final HashSet<Vertex> vertices = new HashSet<>();
+        SwingUtilities.invokeAndWait(new Runnable(){
+            @Override
+            public void run() {
+                for(Vertex v : graph.getVertices())
+                    vertices.add(v);
+            }
+        });
         LinkedList<Vertex> queue = new LinkedList<>();
         int nbOfComponent = 0;
         int nbOfVertices = vertices.size();

@@ -5,38 +5,103 @@
 
 package com.easygraph.algorithms;
 
-import java.awt.Frame;
+import java.util.HashSet;
+import java.util.LinkedList;
+
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
 
 import com.easygraph.graph.Graph;
+import com.easygraph.graph.Vertex;
 
 public class BipartiteTesting extends GraphAlgorithm {
 
-    public BipartiteTesting(Graph g, Frame context){
-        super(context);
-    }
+    private final Graph graph;
     
-    @Override
-    protected String doInBackground(){
-        try {
-            for(int i = 1; i <= 10; i++){
-                
-                if(getProgressMonitor().isCanceled()){
-                }                
-                
-                Thread.sleep(2000);
-                setProgress(10*i);
-                postMessage("Processing: "+(10*i)+"%.");
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        
-        return "Graph is bipartite :-)";
+    public BipartiteTesting(JProgressBar progressBar, JLabel status, Graph graph) {
+        super(progressBar, status);
+        this.graph = graph;
     }
 
     @Override
-    public String getAlgorithmDescription() {
-        return "Testing if the graph is bipartite";
+    protected String doInBackground() throws Exception {
+        
+        final HashSet<Vertex> vertices = new HashSet<>();
+        SwingUtilities.invokeAndWait(new Runnable(){
+            @Override
+            public void run() {
+                for(Vertex v : graph.getVertices())
+                    vertices.add(v);
+            }
+        });
+        
+        postHasStarted();
+        postProgress(0);
+        postMessage("Preparing datastructures");
+        
+        LinkedList<Vertex> queue = new LinkedList<>();
+        HashSet<Vertex> blue = new HashSet<>();
+        HashSet<Vertex> red = new HashSet<>();
+        int nbOfVertices = vertices.size();
+        String wrong = "This graph is not bipartite.";
+        
+        postProgress(10);
+        if(isCancelled())
+            return GraphAlgorithm.CANCEL_DEFAULT_MESSAGE;
+        
+        postMessage("Running BFS");
+        while(!vertices.isEmpty()){
+            Vertex spring = vertices.iterator().next();
+           
+            queue.add(spring);
+            //assign initial color
+            blue.add(spring);
+            
+            while(!queue.isEmpty()){
+                //take all queue neigbhors
+                Vertex current = queue.poll();
+                vertices.remove(current);
+                
+                // thread info
+                int progress = (int) (10 + 80*(1 - (vertices.size() / (double) nbOfVertices)));
+                postProgress(progress);
+                if(isCancelled())
+                    return GraphAlgorithm.CANCEL_DEFAULT_MESSAGE;
+                
+                boolean isBlue = blue.contains(current);
+                for(Vertex v : current.getNeighbors()){
+                    if(blue.contains(v)){
+                        if(isBlue){
+                            postProgress(100);
+                            return wrong;
+                        }
+                    }
+                    else if(red.contains(v)){
+                        if(!isBlue){
+                            postProgress(100);
+                            return wrong;
+                        }
+                    }
+                    else{
+                        if(isBlue){
+                            red.add(v);
+                        }
+                        else{
+                            blue.add(v);
+                        }
+                        queue.add(v);
+                    }
+                    
+                }
+            }
+        }
+        
+        postMessage("Finalising algorithm.");
+        postProgress(100);
+        
+        return "This graph is bipartite";
     }
+
 
 }

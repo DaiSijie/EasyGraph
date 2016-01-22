@@ -31,6 +31,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import com.easygraph.algorithms.BipartiteTesting;
 import com.easygraph.algorithms.ComponentCount;
 import com.easygraph.algorithms.GraphAlgorithm;
 import com.easygraph.algorithms.LongTaskExample;
@@ -111,6 +112,7 @@ public class GraphTab extends JPanel {
         algorithmsCombo.addItem("Planarity test");
         algorithmsCombo.addItem("Isomorphism test");
         algorithmsCombo.addItem("Very long algorithm demo");
+        algorithmsCombo.addItem("Component count");
         algorithmsCombo.setSelectedIndex(0);
         algorithmsCombo.setMaximumSize(algorithmsCombo.getPreferredSize());
 
@@ -122,11 +124,9 @@ public class GraphTab extends JPanel {
 
         algorithmRunner.setVisible(false);
 
-        status.setForeground(new Color(181, 102, 18));
-
+        status.setForeground(ColorTheme.STATUS_INFO_COLOR);
         status.setText("First run an algorithm.");
         status.setMaximumSize(new Dimension(300, status.getPreferredSize().height));
-
     }
 
     private void addListeners(){
@@ -185,7 +185,9 @@ public class GraphTab extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 String algName = (String) algorithmsCombo.getSelectedItem();
                 switch(algName){
-                case "Very long algorithm demo": launchAlg(new ComponentCount(progressBar, status, graph), "Very long algorithm demo"); break;
+                case "Very long algorithm demo": launchAlg(new LongTaskExample(progressBar, status, graph), "Very long algorithm demo"); break;
+                case "Component count": launchAlg(new ComponentCount(progressBar, status, graph), "Component count"); break;
+                case "Bipartite test": launchAlg(new BipartiteTesting(progressBar, status, graph), "Bipartite test"); break;
                 default: status.setForeground(Color.red); status.setText("Not implemented yet");
                 }
             }     
