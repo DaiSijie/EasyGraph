@@ -5,6 +5,7 @@
 
 package com.easygraph.algorithms;
 
+import java.awt.Frame;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -14,20 +15,24 @@ import javax.swing.SwingUtilities;
 
 import com.easygraph.graph.Graph;
 import com.easygraph.graph.Vertex;
+import com.easygraph.gui.DialogsUtility;
+import com.easygraph.gui.GraphDisplay;
 
 public class BipartiteTesting extends GraphAlgorithm {
 
     private final Graph graph;
+    private final Frame ancestor;
     
-    public BipartiteTesting(JProgressBar progressBar, JLabel status, Graph graph) {
+    public BipartiteTesting(JProgressBar progressBar, JLabel status, Graph graph, Frame ancestor) {
         super(progressBar, status);
         this.graph = graph;
+        this.ancestor = ancestor;
     }
 
     @Override
     protected String doInBackground() throws Exception {
         
-        final HashSet<Vertex> vertices = new HashSet<>();
+        final HashSet<Vertex> vertices = new HashSet<>();        
         SwingUtilities.invokeAndWait(new Runnable(){
             @Override
             public void run() {
@@ -41,8 +46,8 @@ public class BipartiteTesting extends GraphAlgorithm {
         postMessage("Preparing datastructures");
         
         LinkedList<Vertex> queue = new LinkedList<>();
-        HashSet<Vertex> blue = new HashSet<>();
-        HashSet<Vertex> red = new HashSet<>();
+        final HashSet<Vertex> blue = new HashSet<>();
+        final HashSet<Vertex> red = new HashSet<>();
         int nbOfVertices = vertices.size();
         String wrong = "This graph is not bipartite.";
         
@@ -99,6 +104,42 @@ public class BipartiteTesting extends GraphAlgorithm {
         
         postMessage("Finalising algorithm.");
         postProgress(100);
+        
+        SwingUtilities.invokeAndWait(new Runnable(){
+            @Override
+            public void run() {
+                boolean tidy = DialogsUtility.yesNo("Do you want to move the vertices to their respective groups?", ancestor) == 0;
+                
+                if(tidy){
+                    double marginX = 50;
+                    double marginY = 100;
+                    
+                    //replacing blue
+                    double sizep  = (blue.size()-1) * marginX;
+                    double startX = (GraphDisplay.FLAWLESS_DIMENSION.width - sizep)/2;
+                    double y = (GraphDisplay.FLAWLESS_DIMENSION.height - marginY)/2;
+                    
+                    int i = 0;
+                    for(Vertex v : blue){
+                        v.posX = startX + marginX * (i++);
+                        v.posY = y;
+                    }
+                    
+                    //replacing red
+                    sizep  = (red.size()-1) * marginX;
+                    startX = (GraphDisplay.FLAWLESS_DIMENSION.width - sizep)/2;
+                    y = (GraphDisplay.FLAWLESS_DIMENSION.height + marginY)/2;
+                    
+                    i = 0;
+                    for(Vertex v : red){
+                        v.posX = startX + marginX * (i++);
+                        v.posY = y;
+                    }
+
+                    ancestor.invalidate();
+                }
+            }
+        });
         
         return "This graph is bipartite";
     }

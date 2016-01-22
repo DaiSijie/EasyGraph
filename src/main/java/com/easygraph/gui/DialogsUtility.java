@@ -37,6 +37,17 @@ public class DialogsUtility {
     }
     
     /**
+     * Yes = 0, No = 1 
+     * @param question
+     * @param frame
+     * @return
+     */
+    public static int yesNo(String question, Frame frame){
+        Object[] options = {"Yes", "No"};
+        return JOptionPane.showOptionDialog(frame, question, "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+    }
+    
+    /**
      * If user has canceled, a negative number is thrown back instead.
      * 
      * @return an int in range [lower;upper] or -1

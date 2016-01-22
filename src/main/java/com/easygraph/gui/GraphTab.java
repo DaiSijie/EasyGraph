@@ -8,6 +8,7 @@ package com.easygraph.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.HierarchyBoundsAdapter;
@@ -187,7 +188,7 @@ public class GraphTab extends JPanel {
                 switch(algName){
                 case "Very long algorithm demo": launchAlg(new LongTaskExample(progressBar, status, graph), "Very long algorithm demo"); break;
                 case "Component count": launchAlg(new ComponentCount(progressBar, status, graph), "Component count"); break;
-                case "Bipartite test": launchAlg(new BipartiteTesting(progressBar, status, graph), "Bipartite test"); break;
+                case "Bipartite test": launchAlg(new BipartiteTesting(progressBar, status, graph, (Frame) SwingUtilities.getWindowAncestor(GraphTab.this)), "Bipartite test"); break;
                 default: status.setForeground(Color.red); status.setText("Not implemented yet");
                 }
             }     
