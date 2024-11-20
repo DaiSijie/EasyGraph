@@ -57,13 +57,13 @@ public class WelcomePanel extends JComponent{
         textDisplay.setText(bd.toString());
         textDisplay.setMaximumSize(textDisplay.getPreferredSize());
         
-        l1 =  prepareLabel("data/welcome/g1.png", "K10");
-        l2 =  prepareLabel("data/welcome/g2.png", "An icosaedro");
-        l3 =  prepareLabel("data/welcome/g3.png", "A simple neural network");
+        l1 =  prepareLabel("welcome/g1.png", "K10");
+        l2 =  prepareLabel("welcome/g2.png", "An icosaedro");
+        l3 =  prepareLabel("welcome/g3.png", "A simple neural network");
     }
     
     private JLabel prepareLabel(String path, String description){
-        ImageIcon icon = new ImageIcon(path);
+        ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource(path));
         
         //making nicer icons
         double sf = 0.5;

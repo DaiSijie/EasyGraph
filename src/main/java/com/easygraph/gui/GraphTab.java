@@ -188,7 +188,15 @@ public class GraphTab extends JPanel {
                 switch(algName){
                 case "Very long algorithm demo": launchAlg(new LongTaskExample(progressBar, status, graph), "Very long algorithm demo"); break;
                 case "Component count": launchAlg(new ComponentCount(progressBar, status, graph), "Component count"); break;
-                case "Bipartite test": launchAlg(new BipartiteTesting(progressBar, status, graph, (Frame) SwingUtilities.getWindowAncestor(GraphTab.this)), "Bipartite test"); break;
+                case "Bipartite test": 
+                    
+                    SwingUtilities.invokeLater(new Runnable(){
+                        public void run(){
+                        
+                        launchAlg(new BipartiteTesting(progressBar, status, graph, (Frame) SwingUtilities.getWindowAncestor(GraphTab.this)), "Bipartite test");
+                        }
+                        });
+                    break;
                 default: status.setForeground(Color.red); status.setText("Not implemented yet");
                 }
             }     
@@ -198,6 +206,8 @@ public class GraphTab extends JPanel {
     }
 
     private void launchAlg(final GraphAlgorithm alg, final String name){
+        System.out.println("Launched alg...");
+        
         //reset the run button
         run.setText("Stop");
         run.removeActionListener(runAction);

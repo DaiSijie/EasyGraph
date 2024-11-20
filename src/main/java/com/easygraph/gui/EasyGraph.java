@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 import com.easygraph.graph.ClassicGraphs;
 import com.easygraph.graph.Graph;
 import com.easygraph.graph.GraphFile;
+import com.easygraph.graph.PermutationGraph;
 
 public class EasyGraph {
 
@@ -54,6 +55,7 @@ public class EasyGraph {
     private final JMenuItem cyclic5 = new JMenuItem("C5");
     private final JMenuItem cyclic10 = new JMenuItem("C10");
     private final JMenuItem cyclicN = new JMenuItem("Order n...");
+    private final JMenuItem permutationN = new JMenuItem("Permutation graph...");
     private final JMenuItem inverseGraph = new JMenuItem("Inverse graph");
     
     private final JMenuItem ssAsSeen = new JMenuItem("As displayed...");
@@ -128,7 +130,10 @@ public class EasyGraph {
         m22.add(cyclicN);
         m2.add(m22);
         m2.addSeparator();
+        m2.add(this.permutationN);
+        m2.addSeparator();
         m2.add(inverseGraph);
+
         
         menuBar.add(m2);
         
@@ -271,6 +276,15 @@ public class EasyGraph {
             } 
         });
         
+        this.permutationN.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int choosed = DialogsUtility.askForNaturalNumber(1, 50, "Enter the number of vertices", frame);
+                if(choosed >= 0)
+                    openPermutation(choosed);
+            } 
+        });
+        
         cyclicN.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -374,6 +388,14 @@ public class EasyGraph {
         }
         
     }
+    
+    private void openPermutation(int order){
+        Graph g = PermutationGraph.createPermutation(order);
+        GraphTab luz = new GraphTab(g, this);
+        tabbedPane.add("Complete"+order, luz, true);
+        tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
+    }
+    
     
     private void openCompleteAction(int order){
         Graph g = ClassicGraphs.createComplete(order);

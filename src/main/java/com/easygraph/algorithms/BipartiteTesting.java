@@ -32,6 +32,9 @@ public class BipartiteTesting extends GraphAlgorithm {
     @Override
     protected String doInBackground() throws Exception {
         
+        System.out.println("Started process...");
+        
+        
         final HashSet<Vertex> vertices = new HashSet<>();        
         SwingUtilities.invokeAndWait(new Runnable(){
             @Override
@@ -103,8 +106,8 @@ public class BipartiteTesting extends GraphAlgorithm {
         }
         
         postMessage("Finalising algorithm.");
-        postProgress(100);
-        
+        postProgress(95);
+                
         SwingUtilities.invokeAndWait(new Runnable(){
             @Override
             public void run() {
@@ -140,6 +143,8 @@ public class BipartiteTesting extends GraphAlgorithm {
                 }
             }
         });
+        
+        postProgress(100);
         
         return "This graph is bipartite";
     }

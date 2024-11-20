@@ -14,6 +14,8 @@ public final class ClassicGraphs {
 
     private ClassicGraphs(){}
     
+
+       
     public static Graph createComplete(int order){
         if(order < 1)
             throw new IllegalArgumentException("A graph should have at least one vertex");
@@ -70,7 +72,7 @@ public final class ClassicGraphs {
         return toReturn;  
     }
     
-    private static String getNameForInt(int order){
+    public static String getNameForInt(int order){
         if(order > 26*26 + 25)
             throw new IllegalArgumentException("Should implement for more variables...");
         
@@ -90,7 +92,7 @@ public final class ClassicGraphs {
         return bd.toString();
     }
     
-    private static void putInRound(List<Vertex> vs, double centerX, double centerY, double radius){
+    public static void putInRound(List<Vertex> vs, double centerX, double centerY, double radius){
         double angleStep = 2*Math.PI/vs.size();
         for(int i = 0; i < vs.size(); i++){
             double x = centerX + Math.cos(angleStep * i) * radius;

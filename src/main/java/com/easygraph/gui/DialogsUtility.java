@@ -67,6 +67,14 @@ public class DialogsUtility {
         else
             return (Integer) spinner.getValue();
     }
+    
+    public static int askForRandomGraphParameters(int lower, int upper, String message, Frame context){
+        if(lower < 0 || upper < 0 || lower > upper)
+            throw new IllegalArgumentException("Bad scheme for lower and upper");
+        
+        return 10;
+    }
+    
 
     /**
      * Returns null if the user aborted the file selection

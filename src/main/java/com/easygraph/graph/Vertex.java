@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Vertex {
 
@@ -25,7 +26,7 @@ public class Vertex {
         posY = rand.nextInt(150)+50;
         
         this.name = name;
-        this.neighbors = new HashSet<>();
+        this.neighbors = Collections.newSetFromMap(new ConcurrentHashMap<Vertex, Boolean>());
     }
     
     public void removeNeighbor(Vertex v){
